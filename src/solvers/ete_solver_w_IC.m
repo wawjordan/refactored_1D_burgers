@@ -75,7 +75,7 @@ OUT.dx          = S.dx;
 OUT.dt          = S.dt;
 OUT.t0          = S.t0;
 OUT.tf          = S.tf;
-OUT.t           = (S.t0:S.dt:max(S.tf,S.max_steps*S.dt))';
+OUT.t           = (S.t0:S.dt:S.tf)';
 
 OUT.PRI        = struct();
 OUT.PRI.Rnorm  = cell(S.max_steps,1);
@@ -379,7 +379,7 @@ function OUT = output_ete_stuff(OUT,S,E,resnorm,count)
     OUT.ERR.EnormX(count,1,1) = sum(tmp)/S.N;          % L1
     OUT.ERR.EnormX(count,1,2) = sqrt(sum(tmp.^2)/S.N); % L2
     OUT.ERR.EnormX(count,1,3) = max(tmp);              % L3
-    if mod(count-1,S.E_out_interval) == 0
+    if (S.E_out_interval~=0)&&(mod(count-1,S.E_out_interval) == 0)
         OUT.ERR.E{count,1}  = E;
         OUT.ERR.EE{count,1} = E-OUT.PRI.E{count};
     end
@@ -393,7 +393,7 @@ function OUT = output_ete_iter_stuff(OUT,S,resnorm,UE,count,iter)
     OUT.ERR.EnormX(count,iter+1,2) = sqrt(sum(tmp.^2)/S.N); % L2
     OUT.ERR.EnormX(count,iter+1,3) = max(tmp);              % L3
     if any(OUT.iters==iter)
-        if mod(count-1,S.E_out_interval) == 0
+        if (S.E_out_interval~=0)&&(mod(count-1,S.E_out_interval) == 0)
             OUT.ERR.E{count,iter+1}  = E2;
             OUT.ERR.EE{count,iter+1} = E2-OUT.PRI.E{count};
         end
@@ -405,14 +405,10 @@ function OUT = output_primal_stuff(OUT,S,U,Uex,E,resnorm,count)
     OUT.PRI.EnormX(count,1) = sum(abs(E))/S.N;     % L1
     OUT.PRI.EnormX(count,2) = sqrt(sum(E.^2)/S.N); % L2
     OUT.PRI.EnormX(count,3) = max(abs(E));         % L3
-    if mod(count-1,S.U_out_interval) == 0
-        OUT.PRI.U{count} = U;
-    end
+    OUT.PRI.U{count} = U;
+    OUT.PRI.E{count} = E;
     if mod(count-1,S.Uex_out_interval) == 0
         OUT.PRI.Uex{count} = Uex;
-    end
-    if mod(count-1,S.E_out_interval) == 0
-        OUT.PRI.E{count} = E;
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
