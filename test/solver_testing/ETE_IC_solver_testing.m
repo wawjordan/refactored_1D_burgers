@@ -1,19 +1,19 @@
 %% ETE w/ iterative correction solver testing
-clc; clear; close all;
+clc; clear;% close all;
 
-order = 6;
-
-N = 129;
-t0 = -2;
-tf = 2;
-dt = 0.4/4;
-ex_soln = burgers_exact_soln('unsteady_shock',64,[-4,4]);
+order = 4;
 
 % N = 129;
-% t0 = 0.1;
-% tf = 0.6;
-% dt = 0.025;
-% ex_soln = burgers_exact_soln('pulse_plus',64,[-2,2]);
+% t0 = -3;
+% tf = 2;
+% dt = 0.4/4;
+% ex_soln = burgers_exact_soln('unsteady_shock',64,[-4,4]);
+
+N = 129;
+t0 = 0.1;
+tf = 0.6;
+dt = 0.025;
+ex_soln = burgers_exact_soln('pulse_plus',64,[-2,2]);
 x = linspace(ex_soln.xmin,ex_soln.xmax,N);
 grid = grid1D(x);
 soln = scalar_soln1D(grid);  % primal solution
@@ -33,15 +33,15 @@ S.Uex_out_interval = 1;
 S.R_out_interval = 1;
 S.E_out_interval = 1;
 S.out_iters = [];
-S.Niters = 10;
+S.Niters = 1;
 S.out_iters = 1:S.Niters;
-% S.stencil_size = 11;
+% S.stencil_size = 7;
 S.stencil_size = order+1+mod(order,2);
 S.integrator    = BDF2_type(grid,soln,S);
 S.ETEintegrator = BDF2_type(grid,Esoln,S);
 S.ETEintegratorIC = BDF2_type(grid,EsolnIC,S);
 S.LS_S = spatial_reconstruction(grid,S,order);
-S.LS_T = temporal_reconstruction(grid,S,order);
+S.LS_T = temporal_reconstruction(grid,S,order,'method','default');
 
 S.L_BC1 = @(~,~) [0,1,0];
 S.L_BC2 = @(~,~) [0,1,0];
