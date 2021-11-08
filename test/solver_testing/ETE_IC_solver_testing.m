@@ -1,19 +1,20 @@
 %% ETE w/ iterative correction solver testing
-clc; clear;% close all;
+clc; clear; close all;
 
 order = 4;
 
-% N = 129;
-% t0 = -3;
-% tf = 2;
-% dt = 0.4/4;
-% ex_soln = burgers_exact_soln('unsteady_shock',64,[-4,4]);
+N = 257;
+t0 = -2;
+tf = 2;
+dt = 0.4/8;
+ex_soln = burgers_exact_soln('unsteady_shock',64,[-4,4]);
 
-N = 129;
-t0 = 0.1;
-tf = 0.6;
-dt = 0.025;
-ex_soln = burgers_exact_soln('pulse_plus',64,[-2,2]);
+% N = 257;
+% t0 = 0.1;
+% tf = 0.6;
+% dt = 0.025/2;
+% ex_soln = burgers_exact_soln('pulse_plus',64,[-2,2]);
+
 x = linspace(ex_soln.xmin,ex_soln.xmax,N);
 grid = grid1D(x);
 soln = scalar_soln1D(grid);  % primal solution
@@ -33,7 +34,7 @@ S.Uex_out_interval = 1;
 S.R_out_interval = 1;
 S.E_out_interval = 1;
 S.out_iters = [];
-S.Niters = 1;
+S.Niters = 10;
 S.out_iters = 1:S.Niters;
 % S.stencil_size = 7;
 S.stencil_size = order+1+mod(order,2);
