@@ -3,20 +3,20 @@ clc; clear; close all;
 IN = struct();
 IN.order   = 4;
 IN.N_IC    = 10;
-% IN.t0      = 0.1;
-% IN.tf      = 0.6;
-% Ns  = 2.^(7:9);
-% dts = 0.025./(2.^(0:3));
-% IN.ex_soln = burgers_exact_soln('pulse_plus',64,[-2,2]);
-IN.t0      = -2;
-IN.tf      = 2;
-Ns  = 2.^(5:11)+1;
-dts = 0.4./(2.^(0:length(Ns)-1));
-IN.ex_soln = burgers_exact_soln('unsteady_shock',64,[-4,4]);
+IN.t0      = 0.1;
+IN.tf      = 0.6;
+Ns  = 2.^(7:14);
+dts = 0.025./(2.^(0:length(Ns)-1));
+IN.ex_soln = burgers_exact_soln('pulse_plus',64,[-2,2]);
+% IN.t0      = -2;
+% IN.tf      = 2;
+% Ns  = 2.^(5:11)+1;
+% dts = 0.4./(2.^(0:length(Ns)-1));
+% IN.ex_soln = burgers_exact_soln('unsteady_shock',64,[-4,4]);
 
 
 IN.Tmethod = 'default';
-IN.U_out  = 1; IN.UE_out = 1; IN.R_out = 0; IN.E_out = 0;
+IN.U_out  = 1; IN.UE_out = 1; IN.R_out = 1; IN.E_out = 1;
 M = length(Ns);
 OUT = struct();
 OUT.tstart = IN.t0;
@@ -70,5 +70,5 @@ end
 fname = [...
     'C:\Users\Will\Documents\MATLAB\VT_Research',...
     '\new\',...
-    '\post_processing\test3'];
+    '\post_processing\pulse_default_T'];
 save(fname,'OUT');
