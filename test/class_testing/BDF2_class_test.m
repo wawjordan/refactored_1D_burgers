@@ -33,14 +33,14 @@ u_old = soln.U;
 % u_old = sin(grid.x);
 
 figure(1);
-% hold on;
+hold on;
 for i = 1:10000
 fprintf('%d\n',i)
 n = i;
-RHS_BC1 = @(u,i) u(i)-4*(sin(n/20)*cos(n/100));%u(grid.N);
-RHS_BC2 = @(u,i) 0;%u(i)-3.999*(sin(n/100)*cos(n/20));%u(grid.N);
 % RHS_BC1 = @(u,i) u(i)-4*(sin(n/20)*cos(n/100));%u(grid.N);
-% RHS_BC2 = @(u,i) u(i)-3.999*(sin(n/100)*cos(n/20));%u(grid.N);
+% RHS_BC2 = @(u,i) 0;%u(i)-3.999*(sin(n/100)*cos(n/20));%u(grid.N);
+RHS_BC1 = @(u,i) u(i)-4*(sin(n/20)*cos(n/100));%u(grid.N);
+RHS_BC2 = @(u,i) u(i)-3.999*(sin(n/100)*cos(n/20));%u(grid.N);
 [u_new,R,S,BD] = BD.step(u_old,S,res,jac,LHS_BC1,LHS_BC2,RHS_BC1,RHS_BC2);
 plot(grid.x,u_new,'linewidth',0.0001)
 ylim([-4,4])
