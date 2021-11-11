@@ -3,17 +3,17 @@ clc; clear; close all;
 
 order = 4;
 
-% N = 1025;
-% t0 = -2;
-% tf = 2;
-% dt = 0.4/32;
-% ex_soln = burgers_exact_soln('unsteady_shock',64,[-4,4]);
+N = 8193;
+t0 = -2;
+tf = 2;
+dt = 0.4/256;
+ex_soln = burgers_exact_soln('unsteady_shock',64,[-4,4]);
 
-N = 129;
-t0 = 0.1;
-tf = 0.6;
-dt = 0.025;
-ex_soln = burgers_exact_soln('pulse_plus',64,[-2,2]);
+% N = 129;
+% t0 = 0.1;
+% tf = 0.6;
+% dt = 0.025;
+% ex_soln = burgers_exact_soln('pulse_plus',64,[-2,2]);
 x = linspace(ex_soln.xmin,ex_soln.xmax,N);
 grid = grid1D(x);
 soln = scalar_soln1D(grid);  % primal solution
@@ -38,7 +38,7 @@ S.stencil_size = order+1+mod(order,2);
 S.integrator    = BDF2_type(grid,soln,S);
 S.ETEintegrator = BDF2_type(grid,Esoln,S);
 S.LS_S = spatial_reconstruction(grid,S,order);
-S.LS_T = temporal_reconstruction(grid,S,order);
+S.LS_T = temporal_reconstruction(grid,S,order,'method','svd2');
 
 S.L_BC1 = @(~,~) [0,1,0];
 S.L_BC2 = @(~,~) [0,1,0];
@@ -52,7 +52,10 @@ S.ETE_RHS = @(u,e,Ru,TE) ETE_residual(u,e,Ru,TE,grid.dx,S.nu,grid.N);
 S.ETE_LHS = @(u,e) ETE_jacobian(u,e,grid.dx,S.nu,grid.N);
 
 
-[Esoln,soln,OUT,S,stencil] = ete_solver(grid,Esoln,soln,S);
+% [Esoln,soln,OUT,S,stencil] = ete_solver(grid,Esoln,soln,S);
+[~,~,OUT,~,stencil] = ete_solver(grid,Esoln,soln,S);
+% reset variables
+[~,~,OUT2,~,stencil2] = ete_solver_w_lag(grid,Esoln,soln,S);
 % [soln,OUT,S] = primal_solver(grid,soln,S);
 % [soln,OUT,S,stencil] = primal_solver_w_stencil(grid,soln,S);
 
