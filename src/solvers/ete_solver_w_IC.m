@@ -133,21 +133,21 @@ while solving
     %%
 
     
-    clf;
-    hold on
-    p = 97;
-%     p = ceil(3/S.dx)+1;
-    semilogy(0:S.Niters,...
-        abs(reshape(stencil.U(p,:,:),S.stencil_size,S.Niters+1)'...
-        -S.ex_soln.eval(grid.x(p),stencil.t(:))'),'o-')
-    labels = cell(1,S.stencil_size);
-    for i = 1:S.stencil_size
-        labels{i} = sprintf('t = %0.2f',stencil.t(i));
-    end
-    legend(labels)
-    xlabel('iteration')
-    ylabel('$\vert u_{i,k}^n - I^h\tilde{u} \vert$','interpreter','latex')
-    set(gca,'yscale','log');
+%     clf;
+%     hold on
+%     p = 97;
+% %     p = ceil(3/S.dx)+1;
+%     semilogy(0:S.Niters,...
+%         abs(reshape(stencil.U(p,:,:),S.stencil_size,S.Niters+1)'...
+%         -S.ex_soln.eval(grid.x(p),stencil.t(:))'),'o-')
+%     labels = cell(1,S.stencil_size);
+%     for i = 1:S.stencil_size
+%         labels{i} = sprintf('t = %0.2f',stencil.t(i));
+%     end
+%     legend(labels)
+%     xlabel('iteration')
+%     ylabel('$\vert u_{i,k}^n - I^h\tilde{u} \vert$','interpreter','latex')
+%     set(gca,'yscale','log');
 %     semilogy(0:S.Niters,...
 %         abs(reshape(stencil.U(p,end,:),1,S.Niters+1)'...
 %         -S.ex_soln.eval(grid.x(p),stencil.t(end))'))
