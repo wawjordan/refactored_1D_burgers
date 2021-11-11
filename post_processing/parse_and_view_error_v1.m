@@ -9,10 +9,12 @@ src_dirname = [...
     '\new\',...
     '\post_processing\'];
 src_fname = 'test3';
-load([src_dirname,src_fname]);
+% load([src_dirname,src_fname]);
 
-norms = 1;       % L-norm (3=infinity)
-iters = 10;    % 0 corresponds to initial ETE solve
+fname='G:\My Drive\MATLAB\VT_Research\2021\shock_long_svd';
+load(fname);
+norms = 3;       % L-norm (3=infinity)
+iters = 2;    % 0 corresponds to initial ETE solve
 times = 2:11;
 
 % separate primal and ETE info for easier handling
