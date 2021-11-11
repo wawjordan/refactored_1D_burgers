@@ -9,7 +9,7 @@ classdef temporal_reconstruction
             this.M2 = S.stencil_size;
             this.R = order; % polynomial order
             defaultMethod = 'default';
-            expectedMethods = {'default','svd'};
+            expectedMethods = {'default','svd','svd2'};
             
             p = inputParser;
             validPosInt = @(x) isnumeric(x) && isscalar(x) ...
@@ -26,6 +26,8 @@ classdef temporal_reconstruction
                     this.method = @eval_default;
                 case 'svd'
                     this.method = @eval_svd;
+                case 'svd2'
+                    this.method = @eval_svd_2;
             end
         end
         function [u0,du1] = eval(this,stencil,time,iter)
@@ -56,6 +58,22 @@ classdef temporal_reconstruction
                 V1(i) = pd(:,2);
             end
             u0  = U(:,1:this.M2)*S*V0;
+            du1 = U(:,1:this.M2)*S*V1;
+        end
+        function [u0,du1] = eval_svd_2(this,stencil,time,iter)
+            Uavg = mean(stencil.U(:,:,iter),2);
+            U = stencil.U(:,:,iter)-Uavg;
+            [U,S,V]=svd(U,0);
+            [A,mu] = vand_matrix(stencil.t,this.R);
+            V0 = zeros(this.M2,1);
+            V1 = zeros(this.M2,1);
+            for i = 1:this.M2
+                P = A\V(:,i);
+                pd = ddpoly(P,time,2,mu);
+                V0(i) = pd(:,1);
+                V1(i) = pd(:,2);
+            end
+            u0  = Uavg + U(:,1:this.M2)*S*V0;
             du1 = U(:,1:this.M2)*S*V1;
         end
     end
