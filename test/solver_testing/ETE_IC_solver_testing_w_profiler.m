@@ -4,10 +4,10 @@ clc; clear; close all;
 
 order = 4;
 
-N = 8193;
+N = 1025;
 t0 = -2;
 tf = 2;
-dt = 0.4/256;
+dt = 0.4/32;
 ex_soln = burgers_exact_soln('unsteady_shock',64,[-4,4]);
 
 % N = 257;
@@ -43,7 +43,8 @@ S.integrator    = BDF2_type(grid,soln,S);
 S.ETEintegrator = BDF2_type(grid,Esoln,S);
 S.ETEintegratorIC = BDF2_type(grid,EsolnIC,S);
 S.ETEintegratorIC.max_newton_iter = 1;
-S.LS_S = spatial_reconstruction(grid,S,order);
+% S.LS_S = spatial_reconstruction(grid,S,order);
+S.LS_S = spatial_reconstruction_v2(grid,S,order);
 S.LS_T = temporal_reconstruction(grid,S,order,'method','svd2');
 
 S.L_BC1 = @(~,~) [0,1,0];
