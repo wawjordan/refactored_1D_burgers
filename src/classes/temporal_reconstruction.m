@@ -1,6 +1,7 @@
 classdef temporal_reconstruction
     properties
         N, M, M2, R, method
+        T, scale
     end
     methods
         function this = temporal_reconstruction(grid,S,order,varargin)
@@ -9,7 +10,7 @@ classdef temporal_reconstruction
             this.M2 = S.stencil_size;
             this.R = order; % polynomial order
             defaultMethod = 'default';
-            expectedMethods = {'default','svd','svd2'};
+            expectedMethods = {'default','svd','svd2','sgolay'};
             
             p = inputParser;
             validPosInt = @(x) isnumeric(x) && isscalar(x) ...
@@ -28,6 +29,10 @@ classdef temporal_reconstruction
                     this.method = @eval_svd;
                 case 'svd2'
                     this.method = @eval_svd_2;
+                case 'sgolay'
+                    this.method = @eval_sgolay;
+                    this.T = my_savgol_end(this.R,this.M2,-1);
+                    this.scale = factorial(0:this.R-1)./(-S.dt).^(0:this.R-1);
             end
         end
         function [u0,du1] = eval(this,stencil,time,iter)
@@ -75,6 +80,13 @@ classdef temporal_reconstruction
             end
             u0  = Uavg + U(:,1:this.M2)*S*V0;
             du1 = U(:,1:this.M2)*S*V1;
+        end
+        function [u0,du1] = eval_sgolay(this,stencil,~,iter)
+            Uavg = mean(stencil.U(:,:,iter),2);
+            U = stencil.U(:,:,iter)-Uavg;
+            u0 = stencil.U(:,end,iter);
+%             u0 = this.scale(1)*U*this.T(:,1,end);
+            du1 = this.scale(2)*U*this.T(:,2,end);
         end
     end
 end
