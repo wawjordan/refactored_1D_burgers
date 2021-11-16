@@ -4,10 +4,10 @@ clc; clear; close all;
 
 order = 4;
 
-N = 1025;
+N = 257;
 t0 = -2;
-tf = 2;
-dt = 0.4/32;
+tf = 1;
+dt = 0.4/8;
 ex_soln = burgers_exact_soln('unsteady_shock',64,[-4,4]);
 
 % N = 257;
@@ -35,14 +35,14 @@ S.Uex_out_interval = 1;
 S.R_out_interval = 1;
 S.E_out_interval = 1;
 S.out_iters = [];
-S.Niters = 10;
+S.Niters = 6;
 S.out_iters = S.Niters;
-% S.stencil_size = 7;
+% S.stencil_size = 9;
 S.stencil_size = order+1+mod(order,2);
 S.integrator    = BDF2_type(grid,soln,S);
 S.ETEintegrator = BDF2_type(grid,Esoln,S);
 S.ETEintegratorIC = BDF2_type(grid,EsolnIC,S);
-S.ETEintegratorIC.max_newton_iter = 1;
+% S.ETEintegratorIC.max_newton_iter = 1;
 % S.LS_S = spatial_reconstruction(grid,S,order);
 S.LS_S = spatial_reconstruction_v2(grid,S,order);
 S.LS_T = temporal_reconstruction(grid,S,order,'method','svd2');
@@ -60,7 +60,7 @@ S.ETE_LHS = @(u,e) ETE_jacobian(u,e,grid.dx,S.nu,grid.N);
 
 profile on -historysize 100000000
 
-[Esoln,EsolnIC,soln,OUT,S,stencil] = ete_solver_w_IC(grid,Esoln,EsolnIC,soln,S);
+[Esoln,EsolnIC,soln,OUT,S,stencil] = ete_solver_w_IC_v2(grid,Esoln,EsolnIC,soln,S);
 
 p = profile('info');
 save myprofiledata p
