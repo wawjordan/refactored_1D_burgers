@@ -8,14 +8,15 @@ src_dirname = [...
     'C:\Users\Will\Documents\MATLAB\VT_Research',...
     '\new\',...
     '\post_processing\'];
-src_fname = 'test3';
-% load([src_dirname,src_fname]);
+src_fname = 'pulse_11-15';
+load([src_dirname,src_fname]);
 
-fname='G:\My Drive\MATLAB\VT_Research\2021\shock_long_svd';
-load(fname);
+% fname='G:\My Drive\MATLAB\VT_Research\2021\shock_long_svd';
+% load(fname);
+%%
 norms = 3;       % L-norm (3=infinity)
-iters = 2;    % 0 corresponds to initial ETE solve
-times = 2:11;
+iters = 0:10;    % 0 corresponds to initial ETE solve
+times = 1;
 
 % separate primal and ETE info for easier handling
 E_error = OUT.Error_Norms_E;
