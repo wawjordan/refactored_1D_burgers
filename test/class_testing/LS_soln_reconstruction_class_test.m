@@ -6,6 +6,7 @@ grid = grid1D(x);
 
 order = 4;
 S.stencil_size = 7;
+S.dt = 0.01;
 LS = spatial_reconstruction(grid,S,order);
 LS2 = spatial_reconstruction_v2(grid,S,order);
 % U   =  sin(x');
@@ -26,9 +27,9 @@ dU2 = -2*sin(x').^2+2*cos(x').^2;
 % plot(v(1:5))
 % plot(U(1:5))
 hold on;
-plot(x,abs(U-u),'b')
-plot(x,abs(dU1-du1),'k')
-plot(x,abs(dU2-du2),'r')
+% plot(x,abs(U-u),'b')
+% plot(x,abs(dU1-du1),'k')
+% plot(x,abs(dU2-du2),'r')
 
 plot(x,abs(U-v),'b--')
 plot(x,abs(dU1-dv1),'k--')
