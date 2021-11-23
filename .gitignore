@@ -36,4 +36,7 @@ codegen/
 *.dat
 *.txt
 *.mat
+
+# Tecplot files
 *.lay
+*.mcr
