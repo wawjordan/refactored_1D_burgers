@@ -191,6 +191,8 @@ end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [Esoln,stencil,OUT,S] = populate_iterates(grid,Esoln,stencil,OUT,S)
+DAT = struct();
+DAT = stencil2tecplot_alg1_tvi(DAT,S,grid,stencil,S.xloc_out,1,true); % uncorrected
 for j = 1:S.Niters   % iterative correction steps
     %% Make array for estimated error
     estError = zeros(grid.N,S.stencil_size);
@@ -232,13 +234,21 @@ for j = 1:S.Niters   % iterative correction steps
         UE = stencil.U(:,i,2); % corrected solution stencil
         OUT = output_ete_iter_stuff(OUT,S,resnorm,UE,i,j);
     end
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    DAT = stencil2tecplot_alg1_tvi(DAT,S,grid,stencil,S.xloc_out,j+1,false);
 end
+format_for_tecplot_multiD_append(S.dirname_out,S.filename_out,DAT,true); %new file
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 end
 function [Esoln,stencil,OUT,S] = step_iterates(grid,Esoln,stencil,OUT,S,count)
 % 1st step is initial condition (error is 0)
 i = stencil.queue_length;
 % S.ETEintegratorIC.um2 = (stencil.U(:,i-2,1)-stencil.U(:,i-2,2));
 % S.ETEintegratorIC.um1 = (stencil.U(:,i-1,1)-stencil.U(:,i-1,2));
+
+DAT = struct();
+DAT = stencil2tecplot_alg1_tvi(DAT,S,grid,stencil,S.xloc_out,1,true); % uncorrected
+
 for j = 1:S.Niters   % iterative correction steps
     S.ETEintegratorIC.um2 = 0*(stencil.U(:,i-2,1)-stencil.U(:,i-2,2));
     S.ETEintegratorIC.um1 = 0*(stencil.U(:,i-1,1)-stencil.U(:,i-1,2));
@@ -264,7 +274,11 @@ for j = 1:S.Niters   % iterative correction steps
     UE = U - e_new; % corrected solution
     stencil.U(:,i,2) = UE; % update stencil with corrected solution
     OUT = output_ete_iter_stuff(OUT,S,resnorm,UE,count,j);
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    DAT = stencil2tecplot_alg1_tvi(DAT,S,grid,stencil,S.xloc_out,j+1,false);
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 end
+format_for_tecplot_multiD_append(S.dirname_out,S.filename_out,DAT,false);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
