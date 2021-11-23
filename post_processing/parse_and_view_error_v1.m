@@ -8,14 +8,14 @@ src_dirname = [...
     'C:\Users\Will\Documents\MATLAB\VT_Research',...
     '\new\',...
     '\post_processing\'];
-src_fname = 'pulse_11-15';
+src_fname = 'test3';
 load([src_dirname,src_fname]);
 
 % fname='G:\My Drive\MATLAB\VT_Research\2021\shock_long_svd';
 % load(fname);
 %%
-norms = 3;       % L-norm (3=infinity)
-iters = 0:10;    % 0 corresponds to initial ETE solve
+norms = 1;       % L-norm (3=infinity)
+iters = 1:5;    % 0 corresponds to initial ETE solve
 times = 1;
 
 % separate primal and ETE info for easier handling
@@ -155,12 +155,12 @@ for i = 1:M2
     end
 end
 for k = 1:O2
-    plot(dx,PRI_Ef(:,norms(k)),'g');
+%     plot(dx,PRI_Ef(:,norms(k)),'g');
     plot(dx,PRI_Eg(:,norms(k)),'m');
 end
 for j = 1:N2
     for k = 1:O2
-        plot(dx,ETE_Ef(:,iters(j)+1,norms(k)),'c');
+%         plot(dx,ETE_Ef(:,iters(j)+1,norms(k)),'c');
         plot(dx,ETE_Eg(:,iters(j)+1,norms(k)),'b');
     end
 end
@@ -181,12 +181,12 @@ for i = 1:M2
     end
 end
 for k = 1:O2
-    plot(dx(2:end),PRI_pf(2:end,norms(k)),'g');
+%     plot(dx(2:end),PRI_pf(2:end,norms(k)),'g');
     plot(dx(2:end),PRI_pg(2:end,norms(k)),'m');
 end
 for j = 1:N2
     for k = 1:O2
-        plot(dx(2:end),ETE_pf(2:end,iters(j)+1,norms(k)),'c');
+%         plot(dx(2:end),ETE_pf(2:end,iters(j)+1,norms(k)),'c');
         plot(dx(2:end),ETE_pg(2:end,iters(j)+1,norms(k)));
     end
 end
