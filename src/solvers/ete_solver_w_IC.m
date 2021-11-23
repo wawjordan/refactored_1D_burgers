@@ -165,7 +165,16 @@ while solving
 %     plot(grid.x,reshape(stencil.U(:,end,2:end),grid.N,S.Niters)-S.ex_soln.eval(grid.x,stencil.t(end)));
 %     y12 = get(gca,'ylim');
 %     plot([grid.x(p),grid.x(p)],[y12(1),y12(1)],'k--','handlevisibility','off')
-    
+
+%     DAT = stencil2tecplot_v5(S,grid,stencil,25);
+%     target_dirname = 'C:\Users\Will\Documents\MATLAB\VT_Research\new\post_processing\';
+%     format_for_tecplot_multiD_append(target_dirname,'stencil_test4.dat',DAT,false);
+%     DAT = stencil2tecplot_v5(S,grid,stencil,S.xloc_out);
+%     format_for_tecplot_multiD_append(S.dirname_out,S.filename_out,DAT,false);
+%     format_for_tecplot_multiD(target_dirname,'stencil_test4.dat',DAT);
+%     [~,EDAT,~] = stencil2tecplot(S,grid,stencil);
+%     [~,~,EDAT] = stencil2tecplot(S,grid,stencil);
+%     format_for_tecplot(target_dirname,'stencil_test.dat',EDAT);
     OUT = primal_cleanup(OUT);
 end
 
@@ -174,7 +183,7 @@ function S = dt_options(S)
 L1 = length(char(regexp(string(S.dt),'(?<=\.)\d*','match')));
 L2 = length(char(string(S.max_steps)));
 S.string_fmt = ...
-    sprintf('t = %%#%d.%dg (timestep: %%%dd/%%d)\\n',min(10,L1+4),L1,L2);
+    sprintf('t = %%#%d.%df (timestep: %%%dd/%%d)\\n',12,L1,L2);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [soln,stencil,OUT,S] = populate_stencil(grid,soln,stencil,OUT,S)
@@ -261,6 +270,7 @@ end
 % % %     OUT = output_ete_stuff(OUT,S,Esoln.U,Uex,soln.E,resnorm,count);
 % end
 function [Esoln,stencil,OUT,S] = populate_iterates(grid,Esoln,stencil,OUT,S)
+
 for j = 1:S.Niters   % iterative correction steps
     %% Make array for estimated error
     estError = zeros(grid.N,S.stencil_size);
@@ -305,6 +315,10 @@ for j = 1:S.Niters   % iterative correction steps
         OUT = output_ete_iter_stuff(OUT,S,resnorm,UE,i,j);
     end
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% DAT = stencil2tecplot_v5(S,grid,stencil,S.xloc_out);
+% format_for_tecplot_multiD_append(S.dirname_out,S.filename_out,DAT,true); %new file
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 end
 % function [Esoln,stencil,OUT,S] = populate_iterates(grid,Esoln,stencil,OUT,S)
 % % 1st step is initial condition (error is 0)
