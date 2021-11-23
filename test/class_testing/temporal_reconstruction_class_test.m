@@ -47,7 +47,7 @@ hold on;
 % plot(x,abs(dUf-du1),'r--')
 
 % plot(x,abs(Uf(:,end)-v),'b--')
-% plot(x,abs(dUf-dv1),'k--')
-plot(x,du1-dv1,'k')
+plot(x,dUf-dv1,'k--')
+% plot(x,du1-dv1,'k')
 hold off
 % set(gca,'yscale','log')
