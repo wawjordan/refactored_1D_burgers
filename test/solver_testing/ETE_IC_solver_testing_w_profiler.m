@@ -35,7 +35,7 @@ S.Uex_out_interval = 1;
 S.R_out_interval = 1;
 S.E_out_interval = 1;
 S.out_iters = [];
-S.Niters = 6;
+S.Niters = 10;
 S.out_iters = S.Niters;
 % S.stencil_size = 9;
 S.stencil_size = order+1+mod(order,2);
@@ -60,7 +60,7 @@ S.ETE_LHS = @(u,e) ETE_jacobian(u,e,grid.dx,S.nu,grid.N);
 
 profile on -historysize 100000000
 
-[Esoln,EsolnIC,soln,OUT,S,stencil] = ete_solver_w_IC_v2(grid,Esoln,EsolnIC,soln,S);
+[Esoln,EsolnIC,soln,OUT,S,stencil] = ete_solver_w_IC(grid,Esoln,EsolnIC,soln,S);
 
 p = profile('info');
 save myprofiledata p
