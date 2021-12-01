@@ -10,18 +10,30 @@ classdef BDF2_type < time_integrator_type
             this.um1 = soln.U;
             this.um2 = soln.U;
         end
-        function [u_new,R,S,this] = step( this, u_old, S, LHS, RHS,...
+        function [u_new,R,S,this] = step( this, u_old, S, RHS, LHS,...
                                              L_BC1, L_BC2, R_BC1, R_BC2 )
             F  = @(u) this.BDF2_res( u, this.um1, this.um2,...
-                                     this.dt, this.N, LHS, R_BC1, R_BC2 );
+                                     this.dt, this.N, RHS, R_BC1, R_BC2 );
             dF = @(u) this.BDF2_jac( u,...
-                                     this.dt, this.N, RHS, L_BC1, L_BC2 );
+                                     this.dt, this.N, LHS, L_BC1, L_BC2 );
             gamma = 0.5;
             [u_new,R] = newton_with_backtracking( u_old, F, dF, gamma,...
                                   this.newton_tol, this.max_newton_iter );
             this.um2 = this.um1;
             this.um1 = u_new;
         end
+%         function [u_new,R,S,this] = step( this, u_old, S, LHS, RHS,...
+%                                              L_BC1, L_BC2, R_BC1, R_BC2 )
+%             F  = @(u) this.BDF2_res( u, this.um1, this.um2,...
+%                                      this.dt, this.N, LHS, R_BC1, R_BC2 );
+%             dF = @(u) this.BDF2_jac( u,...
+%                                      this.dt, this.N, RHS, L_BC1, L_BC2 );
+%             gamma = 0.5;
+%             [u_new,R] = newton_with_backtracking( u_old, F, dF, gamma,...
+%                                   this.newton_tol, this.max_newton_iter );
+%             this.um2 = this.um1;
+%             this.um1 = u_new;
+%         end
         
     end
     methods (Static)
