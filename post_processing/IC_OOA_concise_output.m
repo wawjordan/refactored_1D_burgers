@@ -4,7 +4,7 @@ src_dirname = [...
     'C:\Users\Will\Documents\MATLAB\VT_Research',...
     '\new\',...
     '\post_processing\'];
-src_fname = 'test3';
+src_fname = 'move_shock_ETEIC_newalg_mod';
 % src_fname = 'ETE-IC-BD-4_pulseplus_test';
 % src_dirname = [...
 %     'C:\Users\Will\Documents\MATLAB\VT_Research',...
@@ -24,8 +24,8 @@ target_dirname = 'C:\Users\Will\Documents\MATLAB\VT_Research\new\post_processing
 [SE1,SE2,PE1,PE2,DEBUG] = parse_IC_OOA_concise([src_dirname,src_fname]);
 % [SE,PE,DEBUG] = parse_IC_OOA_concise_time([src_dirname,src_fname]);
 % [SE,PE,DEBUG] = parse_IC_OOA_concise_time_fine([src_dirname,src_fname]);
-src_fname = 'shock_11-15';
 % format_for_tecplot(target_dirname,[src_fname,'L1_Error_fine.dat'],SE.L(1));
+src_fname = 'move_shock_ETEIC_newalg';
 format_for_tecplot(target_dirname,[src_fname,'L1_Error.dat'],SE1.L(1));
 format_for_tecplot(target_dirname,[src_fname,'L1_OOA.dat'],PE1.L(1));
 
