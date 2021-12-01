@@ -8,14 +8,14 @@ src_dirname = [...
     'C:\Users\Will\Documents\MATLAB\VT_Research',...
     '\new\',...
     '\post_processing\'];
-src_fname = 'test3';
+src_fname = 'move_shock_ETEIC_newalg_mod';
 load([src_dirname,src_fname]);
 
 % fname='G:\My Drive\MATLAB\VT_Research\2021\shock_long_svd';
 % load(fname);
 %%
 norms = 1;       % L-norm (3=infinity)
-iters = 1:5;    % 0 corresponds to initial ETE solve
+iters = 0:1;    % 0 corresponds to initial ETE solve
 times = 1;
 
 % separate primal and ETE info for easier handling
@@ -65,7 +65,7 @@ dt = OUT.dt;                % time steps
 
 
 
-%% handles Ex for ETE & PRI
+% handles Ex for ETE & PRI
 for h = 1:L
     for i = 1:M
         for j = 1:N
@@ -73,7 +73,7 @@ for h = 1:L
                 - OUT.Error_Norms_E(h).t ) );
             for k = 1:O
                 if j == N
-                    %% Conditional statement to include 50 iteration case
+                    % Conditional statement to include 50 iteration case
                     j2 = size(OUT.Error_Norms_E(h).E,2);
                     ETE_Ex(h,i,j,k) = OUT.Error_Norms_E(h).E(index,j2,k);
                 else     
@@ -89,7 +89,7 @@ for h = 1:L
     end
 end
 
-%% handles px for ETE & PRI
+% handles px for ETE & PRI
 for h = 2:L
     for i = 1:M
         for j = 1:N
@@ -105,7 +105,7 @@ for h = 2:L
     end
 end
 
-%% handles Ef & Eg for ETE & PRI
+% handles Ef & Eg for ETE & PRI
 for h = 1:L
     for j = 1:N
         for k = 1:O
@@ -119,7 +119,7 @@ for h = 1:L
     end
 end
 
-%% handles pf & pg for ETE & PRI
+% handles pf & pg for ETE & PRI
 for h = 2:L
     for j = 1:N
         for k = 1:O
@@ -139,7 +139,7 @@ end
 
 
 
-%% Plotting
+% Plotting
 
 figure(1);
 subplot(1,2,1)
