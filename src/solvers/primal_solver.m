@@ -73,7 +73,7 @@ OUT.dx          = S.dx;
 OUT.dt          = S.dt;
 OUT.t0          = S.t0;
 OUT.tf          = S.tf;
-OUT.t           = (S.t0:S.dt:max(S.tf,S.max_steps*S.dt))';
+OUT.t           = (S.t0:S.dt:S.tf)';
 
 OUT.PRI        = struct();
 OUT.PRI.Rnorm  = cell(S.max_steps,1);
@@ -85,6 +85,7 @@ OUT.PRI.E      = cell(S.max_steps,1);
 %% Preprocessing steps
 S = dt_options(S);
 int_test = (isa(S.integrator,'BDF2_type'));
+if S.BDF2_startup == 0
 if (int_test)
     time = OUT.t(1)-OUT.dt;
     Uex = S.ex_soln.eval(grid.x,time);
@@ -96,10 +97,27 @@ Uex = S.ex_soln.eval(grid.x,time);
 if (int_test)
     S.integrator.um1 = Uex;
 end
+Uex = S.ex_soln.eval(grid.x,time);
+if (int_test)
+    S.integrator.um1 = Uex;
+end
 soln.U = Uex;
 OUT = output_primal_stuff(OUT,S,Uex,Uex,soln.E,[],1);
 count = 2;
-
+%%%%%%%%%%%%%%%%%
+else
+time = OUT.t(1);
+Uex = S.ex_soln.eval(grid.x,time);
+soln.U = Uex;
+if (int_test)
+    S.integrator.um2 = Uex;
+    [soln,OUT,S] = startup_primal(grid,soln,OUT,S);
+    count = 3;
+else
+    OUT = output_primal_stuff(OUT,S,Uex,Uex,soln.E,[],1);
+    count = 2;
+end
+end
 %% Advance Primal
 solving = true;
 while solving
@@ -133,9 +151,52 @@ function [soln,OUT,S] = step_primal(grid,soln,OUT,S,count)
     OUT = output_primal_stuff(OUT,S,soln.U,Uex,soln.E,resnorm,count);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [soln,OUT,S] = startup_primal(grid,soln,OUT,S)
+time = OUT.t(2);
+Uex = S.ex_soln.eval(grid.x,time);
+L_BC1 = S.L_BC1;                         % LHS BC, left boundary
+L_BC2 = S.L_BC2;                         % LHS BC, right boundary
+R_BC1 = @(u,i) S.R_BC1(u,i,Uex(1));      % RHS BC, left boundary
+R_BC2 = @(u,i) S.R_BC2(u,i,Uex(grid.N)); % RHS BC, right boundary
+u_old = soln.U;
+tmp_integrator = SDIRK2_type(grid,soln,S);
+[u_new,resnorm,S,~] = tmp_integrator.step(...
+    u_old, S, S.RHS, S.LHS, L_BC1, L_BC2, R_BC1, R_BC2 );
+
+soln.U = u_new;
+soln.E = soln.U - Uex;
+OUT = output_primal_stuff(OUT,S,soln.U,Uex,soln.E,resnorm,2);
+S.integrator.um1 = u_new;
+end
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% function [soln,OUT,S] = startup_primal(grid,soln,OUT,S)
+%     utmp = zeros(grid.N,2);
+%     for i = 1:2
+%         time = OUT.t(i+1);
+%         Uex = S.ex_soln.eval(grid.x,time);
+%         L_BC1 = S.L_BC1;                         % LHS BC, left boundary
+%         L_BC2 = S.L_BC2;                         % LHS BC, right boundary
+%         R_BC1 = @(u,i) S.R_BC1(u,i,Uex(1));      % RHS BC, left boundary
+%         R_BC2 = @(u,i) S.R_BC2(u,i,Uex(grid.N)); % RHS BC, right boundary
+%         u_old = soln.U;
+%         tmp_integrator = SDIRK2_type(grid,soln,S);
+%         [u_new,resnorm,S,~] = tmp_integrator.step(...
+%             u_old, S, S.RHS, S.LHS, L_BC1, L_BC2, R_BC1, R_BC2 );
+%         
+%         soln.U = u_new;
+%         utmp(:,i) = u_new;
+%         soln.E = soln.U - Uex;
+%         OUT = output_primal_stuff(OUT,S,soln.U,Uex,soln.E,resnorm,i+1);
+%     end
+%     S.integrator.um2 = utmp(:,1);
+%     S.integrator.um1 = utmp(:,2);
+% end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function OUT = output_primal_stuff(OUT,S,U,Uex,E,resnorm,count)
     OUT.PRI.Rnorm{count}  = resnorm;
-    OUT.PRI.EnormX(count) = sum(abs(E))/S.N;
+    OUT.PRI.EnormX(count,1) = sum(abs(E))/S.N;     % L1
+    OUT.PRI.EnormX(count,2) = sqrt(sum(E.^2)/S.N); % L2
+    OUT.PRI.EnormX(count,3) = max(abs(E));         % L3
     if mod(count-1,S.U_out_interval) == 0
         OUT.PRI.U{count} = U;
     end
