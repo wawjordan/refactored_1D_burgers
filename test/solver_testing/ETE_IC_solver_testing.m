@@ -3,16 +3,28 @@ clc; clear; close all;
 
 order = 4;
 
-% N = 257;%8193;
+% N = 129;
 % t0 = -2;
-% tf = 2;
-% dt = 0.4/8;%0.4/256;
+% tf = 10;
+% dt = 0.4/8;
 % ex_soln = burgers_exact_soln('unsteady_shock',64,[-4,4]);
 
-N = 1025;%257;
+% N = 129;
+% t0 = 0.05;
+% tf = 1;
+% dt = 0.01;
+% ex_soln = burgers_exact_soln('move_shock',64,[-4,4]);
+
+% N = 129;
+% t0 = -5;
+% tf = 5;
+% dt = 0.1;
+% ex_soln = burgers_exact_soln('move_shock',256,[-10,10]);
+
+N = 257;
 t0 = 0.1;
 tf = 0.6;
-dt = 0.025/8;%2;
+dt = 0.025/2;
 ex_soln = burgers_exact_soln('pulse_plus',64,[-2,2]);
 
 x = linspace(ex_soln.xmin,ex_soln.xmax,N);
@@ -30,13 +42,13 @@ S.tf = tf;
 S.dt = dt;
 S.dx = mean(grid.dx);
 S.U_out_interval = 1;
-S.Uex_out_interval = 0;
+S.Uex_out_interval = 1;
 S.R_out_interval = 0;
 S.E_out_interval = 1;
 S.out_iters = [];
-S.Niters = 10;
+S.Niters = 16;
 S.out_iters = 1:S.Niters;
-% S.stencil_size = 11;
+% S.stencil_size = 7;
 S.stencil_size = order+1+mod(order,2);
 S.integrator    = BDF2_type(grid,soln,S);
 S.ETEintegrator = BDF2_type(grid,Esoln,S);
@@ -58,13 +70,14 @@ S.ETE_RHS = @(u,e,Ru,TE) ETE_residual(u,e,Ru,TE,grid.dx,S.nu,grid.N);
 S.ETE_LHS = @(u,e) ETE_jacobian(u,e,grid.dx,S.nu,grid.N);
 
 %%%
-S.xloc_out     = 257;% 3585;%897;%113; %(x=-0.5)
+S.xloc_out     = 5;% 3585;%897;%113; %(x=-0.5)
 S.dirname_out  = 'C:\Users\Will\Documents\MATLAB\VT_Research\new\post_processing\';
 S.filename_out = 'pulse_iteration_error_alg1_1025_relax10.dat';
 S.relax = 1;
 %%%
-
-[Esoln,EsolnIC,soln,OUT,S,stencil] = ete_solver_w_IC_v3(grid,Esoln,EsolnIC,soln,S);
+[Esoln,EsolnIC,soln,OUT,S,stencil] = ete_solver_w_IC_v5(grid,Esoln,EsolnIC,soln,S);
+% [Esoln,EsolnIC,soln,OUT,S,stencil] = ete_solver_w_IC_extrap(grid,Esoln,EsolnIC,soln,S);
+% [Esoln,EsolnIC,soln,OUT,S,stencil] = ete_solver_w_IC_v3(grid,Esoln,EsolnIC,soln,S);
 % [Esoln,EsolnIC,soln,OUT,S,stencil] = ete_solver_w_IC_v2(grid,Esoln,EsolnIC,soln,S);
 % [Esoln,EsolnIC,soln,OUT,S,stencil] = ete_solver_w_IC(grid,Esoln,EsolnIC,soln,S);
 
