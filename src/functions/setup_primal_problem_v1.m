@@ -17,6 +17,7 @@ S.Uex_out_interval = IN.UE_out;
 S.R_out_interval   = IN.R_out;
 S.E_out_interval   = IN.E_out;
 S.integrator      = BDF2_type(grid,soln,S);
+S.BDF2_startup = 0;
 
 S.L_BC1 = @(~,~) [0,1,0];
 S.L_BC2 = @(~,~) [0,1,0];
