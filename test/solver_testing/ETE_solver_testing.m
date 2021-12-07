@@ -3,17 +3,17 @@ clc; clear; close all;
 
 order = 4;
 
-N = 8193;
-t0 = -2;
-tf = 2;
-dt = 0.4/256;
-ex_soln = burgers_exact_soln('unsteady_shock',64,[-4,4]);
+% N = 8193;
+% t0 = -2;
+% tf = 2;
+% dt = 0.4/256;
+% ex_soln = burgers_exact_soln('unsteady_shock',64,[-4,4]);
 
-% N = 129;
-% t0 = 0.1;
-% tf = 0.6;
-% dt = 0.025;
-% ex_soln = burgers_exact_soln('pulse_plus',64,[-2,2]);
+N = 129;
+t0 = 0.1;
+tf = 0.6;
+dt = 0.025;
+ex_soln = burgers_exact_soln('pulse_plus',64,[-2,2]);
 x = linspace(ex_soln.xmin,ex_soln.xmax,N);
 grid = grid1D(x);
 soln = scalar_soln1D(grid);  % primal solution
