@@ -36,6 +36,9 @@ S.RHS = @(u) -ss_residual(u,grid.dx,S.nu,grid.N);
 S.LHS = @(u) jacobian(u,grid.dx,S.nu,grid.N);
 
 S.ETE_RHS = @(u,e,Ru,TE) ETE_residual(u,e,Ru,TE,grid.dx,S.nu,grid.N);
+S.ETE_RHS_SDIRK = @(u,e,Ru,TE) ETE_residual(u,e,Ru,TE,grid.dx,S.nu,grid.N);
+
+
 S.ETE_LHS = @(u,e) ETE_jacobian(u,e,grid.dx,S.nu,grid.N);
 
 end
