@@ -40,3 +40,4 @@ codegen/
 # Tecplot files
 *.lay
 *.mcr
+*.sty
