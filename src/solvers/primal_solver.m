@@ -197,13 +197,13 @@ function OUT = output_primal_stuff(OUT,S,U,Uex,E,resnorm,count)
     OUT.PRI.EnormX(count,1) = sum(abs(E))/S.N;     % L1
     OUT.PRI.EnormX(count,2) = sqrt(sum(E.^2)/S.N); % L2
     OUT.PRI.EnormX(count,3) = max(abs(E));         % L3
-    if mod(count-1,S.U_out_interval) == 0
+    if mod(count-1,S.U_out_interval) == 0 || count == S.max_steps
         OUT.PRI.U{count} = U;
     end
-    if mod(count-1,S.Uex_out_interval) == 0
+    if mod(count-1,S.Uex_out_interval) == 0 || count == S.max_steps
         OUT.PRI.Uex{count} = Uex;
     end
-    if mod(count-1,S.E_out_interval) == 0
+    if mod(count-1,S.E_out_interval) == 0 || count == S.max_steps
         OUT.PRI.E{count} = E;
     end
 end
