@@ -31,8 +31,8 @@ classdef SDIRK2_type < time_integrator_type
         function val = SDIRK2_res1( u, u_old, dt, N, RHS, R_BC1, R_BC2 )
             alpha = (2-sqrt(2))/2;
             val    = u - u_old + alpha*dt*RHS(u);
-%             val(1) = R_BC1(u,1); % apply RHS boundary conditions
-%             val(N) = R_BC2(u,N);
+            val(1) = R_BC1(u,1); % apply RHS boundary conditions
+            val(N) = R_BC2(u,N);
         end
         function val = SDIRK2_res2( u, u_old, u_alpha, dt, N, RHS, R_BC1, R_BC2 )
             alpha = (2-sqrt(2))/2;
