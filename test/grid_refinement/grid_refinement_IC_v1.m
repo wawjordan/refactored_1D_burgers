@@ -3,11 +3,11 @@ clc; clear; close all;
 IN = struct();
 IN.order   = 4;
 IN.N_IC    = 10;
-IN.t0      = -2;
-IN.tf      = 1;
-Ns  = 2.^(7:14)+1;
-dts = 0.025./(2.^(0:length(Ns)-1));
-IN.ex_soln = burgers_exact_soln('move_shock',64,[-4,4]);
+% IN.t0      = -2;
+% IN.tf      = 1;
+% Ns  = 2.^(7:14)+1;
+% dts = 0.025./(2.^(0:length(Ns)-1));
+% IN.ex_soln = burgers_exact_soln('move_shock',64,[-4,4]);
 
 % IN.t0      = 0.05;
 % IN.tf      = 1.05;
@@ -19,14 +19,14 @@ IN.ex_soln = burgers_exact_soln('move_shock',64,[-4,4]);
 % Ns  = 2.^(7:14)+1;
 % dts = 0.0125./(2.^(0:length(Ns)-1));
 % IN.ex_soln = burgers_exact_soln('pulse_plus',64,[-2,2]);
-% IN.t0      = -2;
-% IN.tf      = 2;
-% Ns  = 2.^(7:14)+1;
-% dts = 0.05./(2.^(0:length(Ns)-1));
-% IN.ex_soln = burgers_exact_soln('unsteady_shock',64,[-4,4]);
+IN.t0      = -2;
+IN.tf      = 1;
+Ns  = 2.^(7:12)+1;
+dts = 0.05./(2.^(0:length(Ns)-1));
+IN.ex_soln = burgers_exact_soln('unsteady_shock',64,[-4,4]);
 
 
-IN.Tmethod = 'svd';
+IN.Tmethod = 'sgolay';
 % IN.U_out  = 1; IN.UE_out = 1; IN.R_out = 1; IN.E_out = 1;
 M = length(Ns);
 OUT = struct();
@@ -51,13 +51,14 @@ intervals = intervals/out_interval;
 IN.U_out = 1;
 IN.UE_out = 1;
 IN.R_out = 0;
-IN.E_out = 0;
+IN.E_out = 1;
 for i = 1:M
     
     IN.N = Ns(i);
     IN.dt = dts(i);
     [grid,soln,Esoln,EsolnIC,S] = setup_problem_v1(IN);
-    [Esoln,EsolnIC,soln,OUTPUT,S,stencil] = ete_solver_w_IC_v4(grid,Esoln,EsolnIC,soln,S);
+    [Esoln,EsolnIC,soln,OUTPUT,S,stencil] = ETEIC_solver_alg1_exact_startup(grid,Esoln,EsolnIC,soln,S);
+%     [Esoln,EsolnIC,soln,OUTPUT,S,stencil] = ete_solver_w_IC_v4(grid,Esoln,EsolnIC,soln,S);
     L = length(OUTPUT.t)-1;
     for j = 1:IN.N_IC+1
         Ef(j,1) = norm(OUTPUT.ERR.EnormX(2:L+1,j,1),1)/L;
@@ -85,5 +86,6 @@ end
 fname = [...
     'C:\Users\Will\Documents\MATLAB\VT_Research',...
     '\new\',...
-    '\post_processing\move_shock_newalg_svd_T_1124'];
-save(fname,'OUT');
+    '\post_processing\shock_exact_start_alg1_allsave'];
+% save(fname,'OUT');
+save(fname, 'OUT', '-v7.3')
