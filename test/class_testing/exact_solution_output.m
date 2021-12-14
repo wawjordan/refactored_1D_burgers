@@ -13,11 +13,11 @@ filename1 = 'UEX_shock_coalesce.dat';
 
 x = linspace(-4,4,1025)';
 ex_soln = burgers_exact_soln('unsteady_shock',64,[-4,4]);
-t = -2:0.5:2;
+t = -2:0.01:1;
 % ex_soln = burgers_exact_soln('move_shock',64,[-4,4]);
 % t = -2:0.5:1;
 % ex_soln = burgers_exact_soln('#1',64,[-4,4]);
-% t = [0,0.01,0.1,0.5,1];
+% t = [0,0.1:0.01:1.1];
 L = length(t);
 
 name=[dirname,filename1];
