@@ -9,7 +9,7 @@ IN = struct();
 % IN.ex_soln = burgers_exact_soln('move_shock',64,[-4,4]);
 IN.t0      = 0.05;
 IN.tf      = 1.05;
-Ns  = 2.^(7:14)+1;
+Ns  = 2.^(7:9)+1;
 dts = 0.025./(2.^(0:length(Ns)-1));
 IN.ex_soln = burgers_exact_soln('#1',64,[-4,4]);
 % IN.t0      = -2;
@@ -37,15 +37,22 @@ primal_time.Erich = zeros(M,3);
 primal_time.Efinal = zeros(M,3);
 primal_time.Espacetime = zeros(M,3);
 
-tStart = tic;
+% tStart = tic;
 primal_time.T = zeros(M,1);
 for j = 1:M
     IN.N = Ns(j);
     IN.dt = dts(j);
     [grid,soln,S] = setup_primal_problem_v1(IN);
-    tic
-    [soln,OUTPUT,S] = primal_solver(grid,soln,S);
-    primal_time.T(j) = toc;
+    if j == 1 || j == 2
+        f = @() primal_solver(grid,soln,S);
+        tmp = timeit(f,3);
+        primal_out.T(j) = tmp;
+        [soln,OUTPUT,S] = primal_solver(grid,soln,S);
+    else
+        tic
+        [soln,OUTPUT,S] = primal_solver(grid,soln,S);
+        primal_time.T(j) = toc;
+    end
     OUT.Local_Error_P(j).E = OUTPUT.PRI.E;
     OUT.Local_Error_P(j).u = OUTPUT.PRI.U;
     OUT.Local_Error_P(j).x = grid.x;
@@ -65,10 +72,10 @@ for j = 2:M
     primal_time.Erich(j,2) = sqrt(sum(EE_rich.^2)/Ns(j-1));
     primal_time.Erich(j,3) = max(abs(EE_rich));
 end
-tEnd = toc(tStart);
-primal_time.Ttotal = tEnd-tStart;
-fname = [...
-    'C:\Users\Will\Documents\MATLAB\VT_Research',...
-    '\new\expansion_fan_profiles',...
-    '\primal_profile'];
-save(fname,'primal_time');
+% tEnd = toc(tStart);
+% primal_time.Ttotal = tEnd-tStart;
+% fname = [...
+%     'C:\Users\Will\Documents\MATLAB\VT_Research',...
+%     '\new\expansion_fan_profiles',...
+%     '\primal_profile'];
+% save(fname,'primal_time');
