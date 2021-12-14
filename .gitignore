@@ -37,6 +37,10 @@ codegen/
 *.txt
 *.mat
 
+# Folders
+Himalia/
+Local/
+
 # Tecplot files
 *.lay
 *.mcr
