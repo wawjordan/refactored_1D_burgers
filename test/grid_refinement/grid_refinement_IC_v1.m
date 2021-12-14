@@ -9,21 +9,21 @@ IN.N_IC    = 10;
 % dts = 0.025./(2.^(0:length(Ns)-1));
 % IN.ex_soln = burgers_exact_soln('move_shock',64,[-4,4]);
 
-% IN.t0      = 0.05;
-% IN.tf      = 1.05;
-% Ns  = 2.^(7:14)+1;
-% dts = 0.025./(2.^(0:length(Ns)-1));
-% IN.ex_soln = burgers_exact_soln('#1',64,[-4,4]);
+IN.t0      = 0.1;
+IN.tf      = 1.1;
+Ns  = 2.^(7:12)+1;
+dts = 0.025./(2.^(0:length(Ns)-1));
+IN.ex_soln = burgers_exact_soln('#1',64,[-4,4]);
 % IN.t0      = 0.1;
 % IN.tf      = 0.6;
 % Ns  = 2.^(7:14)+1;
 % dts = 0.0125./(2.^(0:length(Ns)-1));
 % IN.ex_soln = burgers_exact_soln('pulse_plus',64,[-2,2]);
-IN.t0      = -2;
-IN.tf      = 1;
-Ns  = 2.^(7:12)+1;
-dts = 0.05./(2.^(0:length(Ns)-1));
-IN.ex_soln = burgers_exact_soln('unsteady_shock',64,[-4,4]);
+% IN.t0      = -2;
+% IN.tf      = 1;
+% Ns  = 2.^(7:12)+1;
+% dts = 0.05./(2.^(0:length(Ns)-1));
+% IN.ex_soln = burgers_exact_soln('unsteady_shock',64,[-4,4]);
 
 
 IN.Tmethod = 'sgolay';
@@ -86,6 +86,6 @@ end
 fname = [...
     'C:\Users\Will\Documents\MATLAB\VT_Research',...
     '\new\',...
-    '\post_processing\shock_exact_start_alg1_allsave'];
+    '\post_processing\expand_exact_start_alg1_allsave'];
 % save(fname,'OUT');
 save(fname, 'OUT', '-v7.3')
