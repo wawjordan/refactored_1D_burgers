@@ -1,13 +1,12 @@
 function [xk,Rks] = newton_with_backtracking(x0,F,dF,gamma,res_tol,max_iter)
-Rks = nan(max_iter,1);
-
-converged = false;
+Rks = nan(max_iter,1);     % allocate residual norm history
+converged = false;         % initialize convergence booleans
 diverged  = false;
 
-k = 1;
-xk = x0;
+k = 1;                     % initialize iteration counter
+xk = x0;                   % initial guess
 Fk = F(xk);                % evaluate function at x_k
-Rinit = norm (Fk,2);
+Rinit = norm (Fk,2);       % residual norm at first iteration
 Rks(k) = 1;
 
 while ( (~converged)&&(~diverged) )
@@ -26,17 +25,11 @@ while ( (~converged)&&(~diverged) )
       counter = counter+1;
       stalled = (counter > max_iter);
   end
-  Rks(k)= norm(Fkp1,2)/Rinit;     % calculate relative residual reduction
-
-  % update convergence booleans
-  converged = (Rks(k)<res_tol);
-  
+  Rks(k)= norm(Fkp1,2)/Rinit;   % calculate relative residual reduction
+  converged = (Rks(k)<res_tol); % update convergence booleans
   diverged  = ( k > max_iter );
-  
-  xk = xkp1;                % x_k <-- x_k+1
-  Fk = Fkp1;                % f_k <-- f_k+1
+  xk = xkp1;                    % x_k <-- x_k+1
+  Fk = Fkp1;                    % f_k <-- f_k+1
 end
-
-% remove NaNs
-Rks = Rks(~isnan(Rks));
+Rks = Rks(~isnan(Rks));         % remove NaNs
 end
