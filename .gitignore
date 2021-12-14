@@ -38,8 +38,7 @@ codegen/
 *.mat
 
 # Folders
-Himalia/
-Local/
+results/
 
 # Tecplot files
 *.lay
