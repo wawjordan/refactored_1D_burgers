@@ -108,6 +108,10 @@ classdef BDF2_type < time_integrator_type
             this.um2 = this.um1;
             this.um1 = u_new;
         end
+        function this = integrator_reset(this)
+            this.um2 = zeros(this.N,1);
+            this.um1 = this.um2;
+        end 
     end
     methods (Static)
         function val = BDF2_res( u, um1, um2, dt, N, RHS, R_BC1, R_BC2 )
