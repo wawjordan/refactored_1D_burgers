@@ -69,8 +69,10 @@ classdef burgers_exact_soln
        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
        function uex = soln1(this,x,t)
            if t <= 0
-               uex(x<0) = 0;
-               uex(x>=0) = 1;
+               uex(x<=0) = 0;
+               uex(x>0) = 1;
+%                uex(x<0) = 0;
+%                uex(x>=0) = 1;
                uex = uex(:);
            else
                E  = exp((t-2*x)./(4*this.nu));
