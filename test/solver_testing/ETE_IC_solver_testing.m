@@ -15,10 +15,14 @@ order = 4;
 % dt = 0.01;
 % ex_soln = burgers_exact_soln('move_shock',64,[-4,4]);
 
-N  = 129;
-t0 = 0.05;
-tf = 1.05;
-dt = 0.025;
+% N  = 17;
+% t0 = 0.1;
+% tf = 20.1;
+% dt = 0.2;
+N  = 257;
+t0 = 0.1;
+tf = 2.1;
+dt = 0.025/2;
 ex_soln = burgers_exact_soln('#1',64,[-4,4]);
 
 % N = 129;
@@ -52,7 +56,7 @@ S.Uex_out_interval = 1;
 S.R_out_interval = 0;
 S.E_out_interval = 1;
 S.out_iters = [];
-S.Niters = 0;
+S.Niters = 12;
 S.out_iters = 1:S.Niters;
 % S.stencil_size = 7;
 S.stencil_size = order+1+mod(order,2);
@@ -86,13 +90,14 @@ S.ETE_LHS = @(u,e) ETE_jacobian(u,e,grid.dx,S.nu,grid.N);
 
 %%%
 % [Esoln,EsolnIC,soln,OUT,S,stencil] = ETEIC_solver_alg2_exact_startup(grid,Esoln,EsolnIC,soln,S);
-% [Esoln,EsolnIC,soln,OUT,S,stencil] = ETEIC_solver_alg1_exact_startup(grid,Esoln,EsolnIC,soln,S);
+[Esoln,EsolnIC,soln,OUT,S,stencil] = ETEIC_solver_alg1_exact_startup(grid,Esoln,EsolnIC,soln,S);
+% [Esoln,EsolnIC,soln,OUT,S,stencil] = ETEIC_solver_exact_startup(grid,Esoln,EsolnIC,soln,S);
 % [Esoln,EsolnIC,soln,OUT,S,stencil] = ete_solver_w_IC_v4(grid,Esoln,EsolnIC,soln,S);
 % [Esoln,EsolnIC,soln,OUT,S,stencil] = ete_solver_w_IC_extrap(grid,Esoln,EsolnIC,soln,S);
 % [Esoln,EsolnIC,soln,OUT,S,stencil] = ete_solver_w_IC_v3(grid,Esoln,EsolnIC,soln,S);
 % [Esoln,EsolnIC,soln,OUT,S,stencil] = ete_solver_w_IC_v2(grid,Esoln,EsolnIC,soln,S);
 % [Esoln,EsolnIC,soln,OUT,S,stencil] = ete_solver_w_IC(grid,Esoln,EsolnIC,soln,S);
-[Esoln,EsolnIC,soln,OUT,S,stencil] = ETEIC_solver_alg1(grid,Esoln,EsolnIC,soln,S);
+% [Esoln,EsolnIC,soln,OUT,S,stencil] = ETEIC_solver_alg1(grid,Esoln,EsolnIC,soln,S);
 % [Esoln,EsolnIC,soln,OUT,S,stencil] = ETEIC_solver_alg1_SDIRK(grid,Esoln,EsolnIC,soln,S);
 function val = jacobian(u,dx,nu,N)
 val = zeros(N,3);
