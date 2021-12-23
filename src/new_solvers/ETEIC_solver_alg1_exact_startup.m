@@ -47,11 +47,25 @@ end
 S = dt_options(S);
 S.count = 1;
 stencil = soln_stencil( S.stencil_size, S.N, 2 );
-for i = S.stencil_size-1:-1:0
-    time = OUT.t(1)-i*S.dt;
+tmp = stencil.U(:,:,1);
+for i = 1:S.stencil_size
+    time = OUT.t(i);
     Uex = S.ex_soln.eval(grid.x,time);
     stencil = stencil.push(Uex,time);
 end
+for i = S.stencil_size-1:-1:0
+    time = OUT.t(1)-i*S.dt;
+    [tmp(:,i+1),~] = S.LS_T.eval(stencil,time,1);
+end
+for i = S.stencil_size-1:-1:0
+    time = OUT.t(1)-i*S.dt;
+    stencil = stencil.push(tmp(:,i+1),time);
+end
+% for i = S.stencil_size-1:-1:0
+%     time = OUT.t(1)-i*S.dt;
+%     Uex = S.ex_soln.eval(grid.x,time);
+%     stencil = stencil.push(Uex,time);
+% end
 
 S.isBDF2 = (isa(S.integrator,'BDF2_type'));
 if (S.isBDF2)
