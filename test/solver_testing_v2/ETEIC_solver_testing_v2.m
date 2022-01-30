@@ -1,5 +1,5 @@
 %% ETE w/ iterative correction solver testing v2
-clc; clear; close all;
+clc; clear; %close all;
 
 order = 4;
 
@@ -7,11 +7,11 @@ order = 4;
 % t0 = -2;
 % tf = 1;
 % dt = 0.4/8;
-N = 65;
-t0 = -2;
-tf = 1;
-dt = 0.2;
-ex_soln = burgers_exact_soln('unsteady_shock',64,[-4,4]);
+% N = 65;
+% t0 = -2;
+% tf = 1;
+% dt = 0.2;
+% ex_soln = burgers_exact_soln('unsteady_shock',64,[-4,4]);
 
 % N = 129;
 % t0 = 0.05;
@@ -19,15 +19,15 @@ ex_soln = burgers_exact_soln('unsteady_shock',64,[-4,4]);
 % dt = 0.01;
 % ex_soln = burgers_exact_soln('move_shock',64,[-4,4]);
 
-% N  = 33;
+% N  = 65;
 % t0 = 0.1;
 % tf = 1.1;
-% dt = 0.1;
-% N  = 513;
-% t0 = 0.1;
-% tf = 2.1;
-% dt = 0.025/4;
-% ex_soln = burgers_exact_soln('#1',64,[-4,4]);
+% dt = 0.1/2;
+N  = 513;
+t0 = 0.1;
+tf = 0.6;
+dt = 0.025/4;
+ex_soln = burgers_exact_soln('#1',64,[-4,4]);
 
 % N = 129;
 % t0 = -5;
@@ -60,7 +60,7 @@ S.Uex_out_interval = 1;
 S.R_out_interval = 0;
 S.E_out_interval = 1;
 S.out_iters = [];
-S.Niters = 4;
+S.Niters = 6;
 S.out_iters = 1:S.Niters;
 S.stencil_size = order+1+mod(order,2);
 S.integrator      = BDF2_type(grid, soln  ,S);
@@ -68,7 +68,7 @@ S.ETEintegrator   = BDF2_type(grid,Esoln  ,S);
 S.ETEintegratorIC = BDF2_type(grid,EsolnIC,S);
 % S.SDIRK2_start = true;
 % S.ETEintegrator.max_newton_iter = 1;
-S.ETEintegratorIC.max_newton_iter = 2;
+% S.ETEintegratorIC.max_newton_iter = 2;
 
 S.LS_S = spatial_reconstruction(grid,S,order);
 S.LS_T = temporal_reconstruction(grid,S,order,'method','svd');
@@ -84,15 +84,16 @@ S.LHS = @(u) jacobian(u,grid.dx,S.nu,grid.N);
 S.ETE_RHS = @(u,e,Ru,TE) ETE_residual(u,e,Ru,TE,grid.dx,S.nu,grid.N);
 S.ETE_LHS = @(u,e) ETE_jacobian(u,e,grid.dx,S.nu,grid.N);
 
-[Esoln,EsolnIC,soln,OUT,S,stencil] = ETEIC_solver_exact_startup_v2(grid,Esoln,EsolnIC,soln,S);
+[Esoln,EsolnIC,soln,OUT,S,stencil] = ETEIC_solver_exact_startup(grid,Esoln,EsolnIC,soln,S);
+% [Esoln,EsolnIC,soln,OUT,S,stencil] = ETEIC_solver_alg1(grid,Esoln,EsolnIC,soln,S);
 
 P_L1  = sum(abs(([OUT.PRI.U{:}]-[OUT.PRI.Uex{:}])))/grid.N;
 E1_L1 = sum(abs([OUT.ERR.E{:,1}]-([OUT.PRI.U{:}]-[OUT.PRI.Uex{:}])))/grid.N;
 E2_L1 = sum(abs([OUT.ERR.E{:,2}]-([OUT.PRI.U{:}]-[OUT.PRI.Uex{:}])))/grid.N;
 semilogy(P_L1,'k')
 hold on
-semilogy(E1_L1,'r')
-semilogy(E2_L1,'g')
+semilogy(E1_L1,'m--')
+semilogy(E2_L1,'b--')
 
 function val = jacobian(u,dx,nu,N)
 val = zeros(N,3);
