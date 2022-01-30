@@ -21,7 +21,7 @@ order = 4;
 % dt = 0.2;
 N  = 257;
 t0 = 0.1;
-tf = 2.1;
+tf = 1.1;
 dt = 0.025/2;
 ex_soln = burgers_exact_soln('#1',64,[-4,4]);
 
