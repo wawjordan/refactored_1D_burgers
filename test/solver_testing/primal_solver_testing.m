@@ -1,9 +1,9 @@
 %% Primal solver testing
 clc; clear; close all;
-N = 129;
+N = 257;
 t0 = 0.1;
 tf = 1.1;
-dt = 0.025;
+dt = 0.025/2;
 ex_soln = burgers_exact_soln('#1',64,[-4,4]);
 % N = 257;
 % t0 = -2;
