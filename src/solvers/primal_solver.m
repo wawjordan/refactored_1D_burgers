@@ -77,6 +77,7 @@ OUT.t           = (S.t0:S.dt:S.tf)';
 
 OUT.PRI        = struct();
 OUT.PRI.Rnorm  = cell(S.max_steps,1);
+OUT.PRI.Enorm  = zeros(1,3);
 OUT.PRI.EnormX =  nan(S.max_steps,1);
 OUT.PRI.U      = cell(S.max_steps,1);
 OUT.PRI.Uex    = cell(S.max_steps,1);
@@ -84,39 +85,41 @@ OUT.PRI.R      = cell(S.max_steps,1);
 OUT.PRI.E      = cell(S.max_steps,1);
 %% Preprocessing steps
 S = dt_options(S);
+Rnorm = 0;
 int_test = (isa(S.integrator,'BDF2_type'));
 if S.BDF2_startup == 0
-if (int_test)
-    time = OUT.t(1)-OUT.dt;
+    if (int_test)
+        time = OUT.t(1)-OUT.dt;
+        Uex = S.ex_soln.eval(grid.x,time);
+        S.integrator.um2 = Uex;
+    end
+    
+    time = OUT.t(1);
     Uex = S.ex_soln.eval(grid.x,time);
-    S.integrator.um2 = Uex;
-end
-
-time = OUT.t(1);
-Uex = S.ex_soln.eval(grid.x,time);
-if (int_test)
-    S.integrator.um1 = Uex;
-end
-Uex = S.ex_soln.eval(grid.x,time);
-if (int_test)
-    S.integrator.um1 = Uex;
-end
-soln.U = Uex;
-OUT = output_primal_stuff(OUT,S,Uex,Uex,soln.E,[],1);
-count = 2;
-%%%%%%%%%%%%%%%%%
-else
-time = OUT.t(1);
-Uex = S.ex_soln.eval(grid.x,time);
-soln.U = Uex;
-if (int_test)
-    S.integrator.um2 = Uex;
-    [soln,OUT,S] = startup_primal(grid,soln,OUT,S);
-    count = 3;
-else
-    OUT = output_primal_stuff(OUT,S,Uex,Uex,soln.E,[],1);
+    if (int_test)
+        S.integrator.um1 = Uex;
+    end
+    Uex = S.ex_soln.eval(grid.x,time);
+    if (int_test)
+        S.integrator.um1 = Uex;
+    end
+    soln.U = Uex;
+    OUT = output_primal_stuff(OUT,S,Uex,Uex,soln.E,Rnorm,1);
     count = 2;
-end
+    %%%%%%%%%%%%%%%%%
+else
+    time = OUT.t(1);
+    Uex = S.ex_soln.eval(grid.x,time);
+    soln.U = Uex;
+    OUT = output_primal_stuff(OUT,S,Uex,Uex,soln.E,Rnorm,1);
+    if (int_test)
+        S.integrator.um2 = Uex;
+        [soln,OUT,S] = startup_primal(grid,soln,OUT,S);
+        count = 3;
+    else
+%         OUT = output_primal_stuff(OUT,S,Uex,Uex,soln.E,[],1);
+        count = 2;
+    end
 end
 %% Advance Primal
 solving = true;
@@ -127,7 +130,7 @@ while solving
     [soln,OUT,S] = step_primal(grid,soln,OUT,S,count);
     count = count + 1;
 end
-OUT = primal_cleanup(OUT);
+OUT = primal_cleanup(OUT,S);
 end
 function S = dt_options(S)
 L1 = length(char(regexp(string(S.dt),'(?<=\.)\d*','match')));
@@ -168,49 +171,42 @@ soln.E = soln.U - Uex;
 OUT = output_primal_stuff(OUT,S,soln.U,Uex,soln.E,resnorm,2);
 S.integrator.um1 = u_new;
 end
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% function [soln,OUT,S] = startup_primal(grid,soln,OUT,S)
-%     utmp = zeros(grid.N,2);
-%     for i = 1:2
-%         time = OUT.t(i+1);
-%         Uex = S.ex_soln.eval(grid.x,time);
-%         L_BC1 = S.L_BC1;                         % LHS BC, left boundary
-%         L_BC2 = S.L_BC2;                         % LHS BC, right boundary
-%         R_BC1 = @(u,i) S.R_BC1(u,i,Uex(1));      % RHS BC, left boundary
-%         R_BC2 = @(u,i) S.R_BC2(u,i,Uex(grid.N)); % RHS BC, right boundary
-%         u_old = soln.U;
-%         tmp_integrator = SDIRK2_type(grid,soln,S);
-%         [u_new,resnorm,S,~] = tmp_integrator.step(...
-%             u_old, S, S.RHS, S.LHS, L_BC1, L_BC2, R_BC1, R_BC2 );
-%         
-%         soln.U = u_new;
-%         utmp(:,i) = u_new;
-%         soln.E = soln.U - Uex;
-%         OUT = output_primal_stuff(OUT,S,soln.U,Uex,soln.E,resnorm,i+1);
-%     end
-%     S.integrator.um2 = utmp(:,1);
-%     S.integrator.um1 = utmp(:,2);
-% end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function OUT = output_primal_stuff(OUT,S,U,Uex,E,resnorm,count)
+    % Residual norms from time sub-iterations
     OUT.PRI.Rnorm{count}  = resnorm;
-    OUT.PRI.EnormX(count,1) = sum(abs(E))/S.N;     % L1
-    OUT.PRI.EnormX(count,2) = sqrt(sum(E.^2)/S.N); % L2
-    OUT.PRI.EnormX(count,3) = max(abs(E));         % L3
-    if mod(count-1,S.U_out_interval) == 0 || count == S.max_steps
+    % Running totals
+    OUT.PRI.Enorm(1) = OUT.PRI.Enorm(1) + sum(abs(E));    % L_1
+    OUT.PRI.Enorm(2) = OUT.PRI.Enorm(2) + sum(E.^2);      % L_2
+    OUT.PRI.Enorm(3) = max(OUT.PRI.Enorm(3),max(abs(E))); % L_inf
+    % Spatial norms
+    OUT.PRI.EnormX(count,1) = sum(abs(E))/S.N;            % L_1
+    OUT.PRI.EnormX(count,2) = sqrt(sum(E.^2)/S.N);        % L_2
+    OUT.PRI.EnormX(count,3) = max(abs(E));                % L_inf
+    % Vector outputs
+    SOLN_OUT  = mod(count-1,S.U_out_interval) == 0;
+    EXACT_OUT = mod(count-1,S.Uex_out_interval) == 0;
+    ERR_OUT   = mod(count-1,S.E_out_interval) == 0;
+    ENDS      = count == S.max_steps || count == 1;
+    if SOLN_OUT || ENDS
         OUT.PRI.U{count} = U;
     end
-    if mod(count-1,S.Uex_out_interval) == 0 || count == S.max_steps
+    if EXACT_OUT || ENDS
         OUT.PRI.Uex{count} = Uex;
     end
-    if mod(count-1,S.E_out_interval) == 0 || count == S.max_steps
+    if ERR_OUT || ENDS
         OUT.PRI.E{count} = E;
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function OUT = primal_cleanup(OUT)
+function OUT = primal_cleanup(OUT,S)
 OUT.PRI.U   = OUT.PRI.U(~cellfun('isempty',OUT.PRI.U));
 OUT.PRI.Uex = OUT.PRI.Uex(~cellfun('isempty',OUT.PRI.Uex));
 OUT.PRI.R   = OUT.PRI.R(~cellfun('isempty',OUT.PRI.R));
 OUT.PRI.E   = OUT.PRI.E(~cellfun('isempty',OUT.PRI.E));
+
+Nt = S.max_steps - 1; % number of time steps (excluding 1st time step)
+Nx = S.N;             % number of spatial nodes
+OUT.PRI.Enorm(1) = OUT.PRI.Enorm(1)/( Nt*Nx );
+OUT.PRI.Enorm(2) = sqrt( OUT.PRI.Enorm(2)/( Nt*Nx ) );
 end
