@@ -11,10 +11,12 @@ S.max_steps     = OUT.Nt;
 OUT.PRI        = struct();
 OUT.PRI.t      =  nan(S.max_steps,1);
 OUT.PRI.U      = cell(S.max_steps,1);
+OUT.PRI.E      = cell(S.max_steps,1);
 OUT.PRI.Uex    = cell(S.max_steps,1);
 OUT.PRI.R      = cell(S.max_steps,1);
 OUT.PRI.Rt     =  nan(S.max_steps,1);
-
+OUT.PRI.Enorm = zeros(1,3);
+OUT.PRI.EnormX = zeros(S.max_steps,3);
 %% Preprocessing steps
 S = dt_options(S);
 int_test = (isa(S.integrator,'BDF2_type'));
@@ -25,7 +27,8 @@ if (int_test)                                  % BDF2
         S.integrator.um1 = S.ex_soln.eval(grid.x, OUT.t(1));
         soln.U = S.integrator.um1;
         OUT.PRI.U{1}   = soln.U;
-        OUT.PRI.Uex{1} = soln.U;
+        OUT.PRI.E{1}   = 0*soln.U;
+%         OUT.PRI.Uex{1} = soln.U;
         OUT.PRI.t(1)   = OUT.t(1);
         OUT.PRI.R{1}   = 0;
         OUT.PRI.Rt(1)  = OUT.t(1);
@@ -39,7 +42,7 @@ if (int_test)                                  % BDF2
 else                                           % Other
     soln.U = S.ex_soln.eval(grid.x,OUT.t(1));
     OUT.PRI.U{1}   = soln.U;
-    OUT.PRI.Uex{1} = soln.U;
+%     OUT.PRI.Uex{1} = soln.U;
     OUT.PRI.t(1)   = OUT.t(1);
     OUT.PRI.R{1}   = 0;
     OUT.PRI.Rt(1)  = OUT.t(1);
@@ -51,15 +54,22 @@ for i = count:S.max_steps
     time = OUT.t(i);
     fprintf(S.string_fmt,time,i-1,S.max_steps-1);
     [soln,resnorm,S] = step_primal(grid,soln,S,time);
-    OUT = output_solution(OUT,S,soln.U,resnorm,i);
-end
-for i = count:S.max_steps
-    time = OUT.t(i);
-    if mod(i-1,S.U_out_interval) == 0 || i == S.max_steps
-        OUT.PRI.Uex{i} = S.ex_soln.eval(grid.x,time);
-    end
+    OUT = output_solution(OUT,S,grid,soln.U,resnorm,i,time);
 end
 OUT = primal_cleanup(OUT);
+% for i = count:S.max_steps
+%     time = OUT.t(i);
+%     fprintf(S.string_fmt,time,i-1,S.max_steps-1);
+%     [soln,resnorm,S] = step_primal(grid,soln,S,time);
+%     OUT = output_solution(OUT,S,soln.U,resnorm,i);
+% end
+% for i = count:S.max_steps
+%     time = OUT.t(i);
+%     if mod(i-1,S.U_out_interval) == 0 || i == S.max_steps
+%         OUT.PRI.Uex{i} = S.ex_soln.eval(grid.x,time);
+%     end
+% end
+% OUT = primal_cleanup(OUT);
 end
 function S = dt_options(S)
 L1 = length(char(regexp(string(S.dt),'(?<=\.)\d*','match')));
@@ -103,7 +113,22 @@ function [soln,resnorm,S] = step_primal(grid,soln,S,time)
            soln.U, S, S.RHS, S.LHS, L_BC1, L_BC2, R_BC1, R_BC2 );
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function OUT = output_solution(OUT,S,U,resnorm,count)
+function OUT = output_solution(OUT,S,grid,U,resnorm,count,time)
+    Uex = S.ex_soln.eval(grid.x,time);
+    E = U - Uex;
+    % Running totals
+    OUT.PRI.Enorm(1) = OUT.PRI.Enorm(1) + sum(abs(E));    % L1
+    OUT.PRI.Enorm(2) = OUT.PRI.Enorm(2) + sum(E.^2);      % L2
+    OUT.PRI.Enorm(3) = max(OUT.PRI.Enorm(3),max(abs(E))); % L3
+    
+    % "Spatial"
+    OUT.PRI.EnormX(count,1) = sum(abs(E))/S.N;     % L1
+    OUT.PRI.EnormX(count,2) = sqrt(sum(E.^2)/S.N); % L2
+    OUT.PRI.EnormX(count,3) = max(abs(E));         % L3
+    
+    if mod(count-1,S.E_out_interval) == 0 || count == S.max_steps
+        OUT.PRI.E{count} = E;
+    end
     if mod(count-1,S.R_out_interval) == 0 || count == S.max_steps
         OUT.PRI.R{count}  = resnorm;
         OUT.PRI.Rt(count) = OUT.t(count);
