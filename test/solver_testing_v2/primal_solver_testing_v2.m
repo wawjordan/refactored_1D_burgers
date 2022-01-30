@@ -33,6 +33,7 @@ S.dt = dt;
 S.dx = mean(grid.dx);
 S.U_out_interval = 1;
 S.R_out_interval = 1;
+S.E_out_interval = 1;
 % S.integrator = BDF2_type(grid,soln,S,'method','broyden');
 % S.integrator = BDF2_type(grid,soln,S,'method','broyden-lin');
 % S.integrator = BDF2_type(grid,soln,S,'method','broyden-I');
@@ -48,10 +49,11 @@ S.RHS = @(u) -ss_residual(u,grid.dx,S.nu,grid.N);
 S.LHS = @(u) jacobian(u,grid.dx,S.nu,grid.N);
 S.BDF2_startup = 0;
 [~,OUT,S] = primal_solver_v2(grid,soln,S);
-
-soln = scalar_soln1D(grid);
-S.BDF2_startup = 1;
-[~,OUT2,S] = primal_solver_v2(grid,soln,S);
+% soln = scalar_soln1D(grid);
+% [~,OUT2,S] = primal_solver(grid,soln,S);
+% soln = scalar_soln1D(grid);
+% S.BDF2_startup = 1;
+% [~,OUT2,S] = primal_solver_v2(grid,soln,S);
 
 function val = jacobian(u,dx,nu,N)
 val = zeros(N,3);
