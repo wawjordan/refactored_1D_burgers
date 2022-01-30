@@ -78,16 +78,33 @@ OUT = output_ete_iter_stuff(OUT, S,  soln.U, 0, S.count);
 S.count = 2;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Advance Solution
-solving = true;
-while solving
-    time = OUT.t(S.count);
-    fprintf(S.string_fmt,time,S.count-1,S.max_steps-1);
-    solving = (S.count<S.max_steps);
-    [soln,   stencil,OUT,S] = step_primal(  grid,   soln, stencil, OUT, S, S.count);
-    [Esoln,  stencil,OUT,S] = step_ete(     grid,  Esoln, stencil, OUT, S, S.count);
-    [EsolnIC,stencil,OUT,S] = step_iterates(grid,EsolnIC, stencil, OUT, S, S.count);
-    S.count = S.count + 1;
+% solving = true;
+% while solving
+%     time = OUT.t(S.count);
+%     fprintf(S.string_fmt,time,S.count-1,S.max_steps-1);
+%     solving = (S.count<S.max_steps);
+%     [soln,   stencil,OUT,S] = step_primal(  grid,   soln, stencil, OUT, S, S.count);
+%     [Esoln,  stencil,OUT,S] = step_ete(     grid,  Esoln, stencil, OUT, S, S.count);
+%     [EsolnIC,stencil,OUT,S] = step_iterates(grid,EsolnIC, stencil, OUT, S, S.count);
+%     S.count = S.count + 1;
+% end
+if S.Niters > 0
+    for i = S.count:S.max_steps
+        time = OUT.t(i);
+        fprintf(S.string_fmt,time,i-1,S.max_steps-1);
+        [soln,   stencil,OUT,S] = step_primal(  grid,   soln, stencil, OUT, S, i);
+        [Esoln,  stencil,OUT,S] = step_ete(     grid,  Esoln, stencil, OUT, S, i);
+        [EsolnIC,stencil,OUT,S] = step_iterates(grid,EsolnIC, stencil, OUT, S, i);
+    end
+else
+    for i = S.count:S.max_steps
+        time = OUT.t(i);
+        fprintf(S.string_fmt,time,i-1,S.max_steps-1);
+        [soln,   stencil,OUT,S] = step_primal(  grid,   soln, stencil, OUT, S, i);
+        [Esoln,  stencil,OUT,S] = step_ete(     grid,  Esoln, stencil, OUT, S, i);
+    end
 end
+
 OUT = primal_cleanup(OUT);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
