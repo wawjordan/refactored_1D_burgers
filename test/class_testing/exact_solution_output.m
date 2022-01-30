@@ -2,22 +2,22 @@
 clc; clear; close all;
 
 dirname = 'C:\Users\Will\Desktop\';
-filename1 = 'UEX_shock_coalesce.dat';
+% filename1 = 'UEX_shock_coalesce.dat';
 % filename1 = 'UEX_pulse_decay.dat';
 % filename1 = 'UEX_moving_shock.dat';
-% filename1 = 'UEX_expansion_fan.dat';
+filename1 = 'UEX_expansion_fan.dat';
 
 % x = linspace(-2,2,1025)';
 % ex_soln = burgers_exact_soln('pulse_plus',64,[-2,2]);
 % t = 0.1:0.1:0.6;
 
 x = linspace(-4,4,1025)';
-ex_soln = burgers_exact_soln('unsteady_shock',64,[-4,4]);
-t = -2:0.01:1;
+% ex_soln = burgers_exact_soln('unsteady_shock',64,[-4,4]);
+% t = [-2*ones(1,10) -2:3/280:1, 1*ones(1,10)];
 % ex_soln = burgers_exact_soln('move_shock',64,[-4,4]);
 % t = -2:0.5:1;
-% ex_soln = burgers_exact_soln('#1',64,[-4,4]);
-% t = [0,0.1:0.01:1.1];
+ex_soln = burgers_exact_soln('#1',64,[-4,4]);
+t = [0.1*ones(1,10), 0.1:1/280:1.1, 1.1*ones(1,10)];
 L = length(t);
 
 name=[dirname,filename1];
