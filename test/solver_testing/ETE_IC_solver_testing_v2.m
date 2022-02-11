@@ -34,7 +34,7 @@ S.Uex_out_interval = 1;
 S.R_out_interval = 1;
 S.E_out_interval = 1;
 S.out_iters = [];
-S.Niters = 4;
+S.Niters = 10;
 S.out_iters = 1:S.Niters;
 % S.stencil_size = 7;
 S.stencil_size = order+1+mod(order,2);
@@ -55,7 +55,7 @@ S.LHS = @(u) jacobian(u,grid.dx,S.nu,grid.N);
 S.ETE_RHS = @(u,e,Ru,TE) ETE_residual(u,e,Ru,TE,grid.dx,S.nu,grid.N);
 S.ETE_LHS = @(u,e) ETE_jacobian(u,e,grid.dx,S.nu,grid.N);
 
-[Esoln,EsolnIC,soln,OUT,S,stencil] = ete_solver_w_IC_v3(grid,Esoln,EsolnIC,soln,S);
+[Esoln,EsolnIC,soln,OUT,S,stencil] = ete_solver_w_IC_v4(grid,Esoln,EsolnIC,soln,S);
 
 function val = jacobian(u,dx,nu,N)
 val = zeros(N,3);
