@@ -1,13 +1,13 @@
 %% ETE w/ iterative correction solver testing
 clc; clear; close all;
 
-order = 4;
+order = 6;
 
-% N = 129;
-% t0 = -2;
-% tf = 2;
-% dt = 0.4/8;
-% ex_soln = burgers_exact_soln('unsteady_shock',64,[-4,4]);
+N = 129;
+t0 = -2;
+tf = 4;
+dt = 0.4/8;
+ex_soln = burgers_exact_soln('unsteady_shock',64,[-4,4]);
 
 % N = 129;
 % t0 = 0.05;
@@ -19,11 +19,11 @@ order = 4;
 % t0 = 0.1;
 % tf = 20.1;
 % dt = 0.2;
-N  = 257;
-t0 = 0.1;
-tf = 1.1;
-dt = 0.025/2;
-ex_soln = burgers_exact_soln('#1',64,[-4,4]);
+% N  = 257;
+% t0 = 0.1;
+% tf = 1.1;
+% dt = 0.025/2;
+% ex_soln = burgers_exact_soln('#1',64,[-4,4]);
 
 % N = 129;
 % t0 = -5;
@@ -51,12 +51,11 @@ S.t0 = t0;
 S.tf = tf;
 S.dt = dt;
 S.dx = mean(grid.dx);
-S.U_out_interval = 1;
-S.Uex_out_interval = 1;
+S.U_out_interval = 0;
+S.Uex_out_interval = 0;
 S.R_out_interval = 0;
 S.E_out_interval = 1;
-S.out_iters = [];
-S.Niters = 12;
+S.Niters = 10;
 S.out_iters = 1:S.Niters;
 % S.stencil_size = 7;
 S.stencil_size = order+1+mod(order,2);
@@ -90,14 +89,14 @@ S.ETE_LHS = @(u,e) ETE_jacobian(u,e,grid.dx,S.nu,grid.N);
 
 %%%
 % [Esoln,EsolnIC,soln,OUT,S,stencil] = ETEIC_solver_alg2_exact_startup(grid,Esoln,EsolnIC,soln,S);
-[Esoln,EsolnIC,soln,OUT,S,stencil] = ETEIC_solver_alg1_exact_startup(grid,Esoln,EsolnIC,soln,S);
+% [Esoln,EsolnIC,soln,OUT,S,stencil] = ETEIC_solver_alg1_exact_startup(grid,Esoln,EsolnIC,soln,S);
 % [Esoln,EsolnIC,soln,OUT,S,stencil] = ETEIC_solver_exact_startup(grid,Esoln,EsolnIC,soln,S);
 % [Esoln,EsolnIC,soln,OUT,S,stencil] = ete_solver_w_IC_v4(grid,Esoln,EsolnIC,soln,S);
 % [Esoln,EsolnIC,soln,OUT,S,stencil] = ete_solver_w_IC_extrap(grid,Esoln,EsolnIC,soln,S);
 % [Esoln,EsolnIC,soln,OUT,S,stencil] = ete_solver_w_IC_v3(grid,Esoln,EsolnIC,soln,S);
 % [Esoln,EsolnIC,soln,OUT,S,stencil] = ete_solver_w_IC_v2(grid,Esoln,EsolnIC,soln,S);
 % [Esoln,EsolnIC,soln,OUT,S,stencil] = ete_solver_w_IC(grid,Esoln,EsolnIC,soln,S);
-% [Esoln,EsolnIC,soln,OUT,S,stencil] = ETEIC_solver_alg1(grid,Esoln,EsolnIC,soln,S);
+[Esoln,EsolnIC,soln,OUT,S,stencil] = ETEIC_solver_alg1(grid,Esoln,EsolnIC,soln,S);
 % [Esoln,EsolnIC,soln,OUT,S,stencil] = ETEIC_solver_alg1_SDIRK(grid,Esoln,EsolnIC,soln,S);
 function val = jacobian(u,dx,nu,N)
 val = zeros(N,3);
