@@ -93,8 +93,8 @@ while solving
     [Esoln,  stencil,OUT,S] = step_ete(     grid,soln,Esoln,  stencil,OUT,S,count);
     [EsolnIC,stencil,OUT,S] = step_iterates(grid,soln,EsolnIC,stencil,OUT,S,count);
     count = count + 1;
-    OUT = primal_cleanup(OUT,S);
 end
+OUT = primal_cleanup(OUT,S);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Supplementary Functions
@@ -234,9 +234,9 @@ function OUT = output_ete_iter_stuff(OUT,S,soln,resnorm,UE,count,iter)
     E2 = soln.U- UE;
     tmp = abs(E2-soln.E);
     % Running totals
-    OUT.ERR.Enorm(iter+1,1) =     OUT.ERR.Enorm(1,1) + sum(tmp);   % L_1
-    OUT.ERR.Enorm(iter+1,2) =     OUT.ERR.Enorm(1,2) + sum(tmp.^2);% L_2
-    OUT.ERR.Enorm(iter+1,3) = max(OUT.ERR.Enorm(1,3),max(tmp));    % L_inf
+    OUT.ERR.Enorm(iter+1,1) =     OUT.ERR.Enorm(iter+1,1) + sum(tmp);   % L_1
+    OUT.ERR.Enorm(iter+1,2) =     OUT.ERR.Enorm(iter+1,2) + sum(tmp.^2);% L_2
+    OUT.ERR.Enorm(iter+1,3) = max(OUT.ERR.Enorm(iter+1,3),max(tmp));    % L_inf
     % Spatial norms
     OUT.ERR.EnormX(count,iter+1,1) = sum(tmp)/S.N;                 % L_1
     OUT.ERR.EnormX(count,iter+1,2) = sqrt(sum(tmp.^2)/S.N);        % L_2
