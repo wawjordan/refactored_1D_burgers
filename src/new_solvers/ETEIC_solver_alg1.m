@@ -30,6 +30,7 @@ OUT.t           = (S.t0:S.dt:S.tf)';
 
 OUT.PRI        = struct();
 OUT.PRI.Rnorm  = cell(S.max_steps,1);
+OUT.PRI.Enorm  = zeros(1,3);
 OUT.PRI.EnormX =  nan(S.max_steps,3);
 OUT.PRI.U      = cell(S.max_steps,1);
 OUT.PRI.Uex    = cell(S.max_steps,1);
@@ -38,6 +39,7 @@ OUT.PRI.E      = cell(S.max_steps,1);
 
 OUT.ERR        = struct();
 OUT.ERR.Rnorm  = cell(S.max_steps,S.Niters+1);
+OUT.ERR.Enorm  = zeros(S.Niters+1,3);
 OUT.ERR.EnormX = nan(S.max_steps,S.Niters+1,3);
 OUT.ERR.R      = cell(S.max_steps,S.Niters+1);
 OUT.ERR.E      = cell(S.max_steps,S.Niters+1);
@@ -64,8 +66,11 @@ if (S.isBDF2)
         S.integrator.um2 = Uex;
         OUT = output_primal_stuff(OUT,S,Uex,Uex,soln.E,0,1);
         OUT = output_ete_stuff(OUT,S,Esoln.U,0,1);
+        UP = stencil.U(:,1,1); % uncorrected solution
+        Uex = S.ex_soln.eval(grid.x,stencil.t(1));
+        EP = UP - Uex;
         for i = 1:S.Niters
-            OUT = output_ete_iter_stuff(OUT,S,0,Uex,1,i);
+            OUT = output_ete_iter_stuff(OUT,S,UP,EP,0,Uex,1,i);
         end
         time = OUT.t(2);
         Uex = S.ex_soln.eval(grid.x,time);
@@ -115,9 +120,12 @@ if (S.isBDF2)
         S.integrator.um1 = Uex;
         soln.U = Uex;
         OUT = output_primal_stuff(OUT,S,Uex,Uex,soln.E,0,1);
-        OUT = output_ete_stuff(OUT,S,Esoln.U,0,1);
+        OUT = output_ete_stuff(OUT,S,Esoln.U,soln.E,0,1);
+        UP = stencil.U(:,1,1); % uncorrected solution
+        Uex = S.ex_soln.eval(grid.x,stencil.t(1));
+        EP = UP - Uex;
         for i = 1:S.Niters
-            OUT = output_ete_iter_stuff(OUT,S,0,Uex,1,i);
+            OUT = output_ete_iter_stuff(OUT,S,UP,EP,0,Uex,1,i);
         end
         S.count = 2;
         [soln,stencil,OUT,S]  = populate_stencil(grid,soln,stencil,OUT,S);
@@ -131,8 +139,11 @@ else
     soln.U = Uex;
     OUT = output_primal_stuff(OUT,S,Uex,Uex,soln.E,0,1);
     OUT = output_ete_stuff(OUT,S,Esoln.U,0,1);
+    UP = stencil.U(:,1,1); % uncorrected solution
+    Uex = S.ex_soln.eval(grid.x,stencil.t(1));
+    EP = UP - Uex;
     for i = 1:S.Niters
-        OUT = output_ete_iter_stuff(OUT,S,0,Uex,1,i);
+        OUT = output_ete_iter_stuff(OUT,S,UP,EP,0,Uex,1,i);
     end
     S.count = 2;
     [soln,stencil,OUT,S]  = populate_stencil(grid,soln,stencil,OUT,S);
@@ -147,11 +158,18 @@ while solving
     time = OUT.t(count);
     fprintf(S.string_fmt,time,count-1,S.max_steps-1);
     solving = (count<S.max_steps);
-    [soln,stencil,OUT,S] = step_primal(grid,soln,stencil,OUT,S,count);
-    [Esoln,stencil,OUT,S] = step_ete(grid,Esoln,stencil,OUT,S,count);
-    [EsolnIC,stencil,OUT,S] = step_iterates(grid,EsolnIC,stencil,OUT,S,count);
+    
+    [soln,   stencil,OUT,S] = step_primal(  grid,soln,        stencil,OUT,S,count);
+    [Esoln,  stencil,OUT,S] = step_ete(     grid,soln,Esoln,  stencil,OUT,S,count);
+    [EsolnIC,stencil,OUT,S] = step_iterates(grid,soln,EsolnIC,stencil,OUT,S,count);
     count = count + 1;
-    OUT = primal_cleanup(OUT);
+    OUT = primal_cleanup(OUT,S);
+    
+%     [soln,stencil,OUT,S] = step_primal(grid,soln,stencil,OUT,S,count);
+%     [Esoln,stencil,OUT,S] = step_ete(grid,Esoln,stencil,OUT,S,count);
+%     [EsolnIC,stencil,OUT,S] = step_iterates(grid,EsolnIC,stencil,OUT,S,count);
+%     count = count + 1;
+%     OUT = primal_cleanup(OUT);
 end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -203,7 +221,10 @@ for i = S.count:S.stencil_size % march forward with ETE solution
               e_old, S, RHS, LHS, L_BC1, L_BC2, R_BC1, R_BC2 );
     Esoln.U = e_new;
     stencil.U(:,i,2) = U - e_new; % update next stencil with corrected solution
-    OUT = output_ete_stuff(OUT,S,Esoln.U,resnorm,i);
+    UP = stencil.U(:,i,1); % uncorrected solution
+    Uex = S.ex_soln.eval(grid.x,stencil.t(i));
+    EP = UP - Uex;
+    OUT = output_ete_stuff(OUT,S,Esoln.U,EP,resnorm,i);
 end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -246,7 +267,11 @@ for j = 1:S.Niters   % iterative correction steps
     %% output info
     for i = 2:S.stencil_size
         UE = stencil.U(:,i,2); % corrected solution stencil
-        OUT = output_ete_iter_stuff(OUT,S,resnorm,UE,i,j);
+        UP = stencil.U(:,i,1); % uncorrected solution
+        Uex = S.ex_soln.eval(grid.x,stencil.t(i));
+        EP = UP - Uex;
+%         OUT = output_ete_iter_stuff(OUT,S,soln,resnorm,UE,i,j);
+        OUT = output_ete_iter_stuff(OUT,S,UP,EP,resnorm,UE,i,j);
     end
 end
 end
@@ -307,14 +332,18 @@ for j = 1:S.Niters   % iterative correction steps
     stencil.U(:,:,2) = stencil.U(:,:,2) - estError;
     for i = 2:S.stencil_size
         UE = stencil.U(:,i,2); % corrected solution stencil
-        OUT = output_ete_iter_stuff(OUT,S,resnorm,UE,i,j);% output info
+        UP = stencil.U(:,i,1); % uncorrected solution
+        Uex = S.ex_soln.eval(grid.x,stencil.t(i));
+        EP = UP - Uex;
+%         OUT = output_ete_iter_stuff(OUT,S,soln,resnorm,UE,i,j);% output info
+        OUT = output_ete_iter_stuff(OUT,S,UP,EP,resnorm,UE,i,j);
     end
 end
 end
-function [Esoln,stencil,OUT,S] = step_iterates(grid,Esoln,stencil,OUT,S,count)
-% 1st step is initial condition (error is 0)
-i = stencil.queue_length;
-for j = 1:S.Niters   % iterative correction steps
+function [Esoln,stencil,OUT,S] = step_iterates(grid,soln,Esoln,stencil,OUT,S,count)
+i = stencil.queue_length; % location in stencil
+for j = 1:S.Niters        % iterative correction steps
+    % Error must be initialized to 0 for stability
     if (S.isBDF2)
         S.ETEintegratorIC.um2 = 0*(stencil.U(:,i-2,1)-stencil.U(:,i-2,2));
         S.ETEintegratorIC.um1 = 0*(stencil.U(:,i-1,1)-stencil.U(:,i-1,2));
@@ -328,12 +357,12 @@ for j = 1:S.Niters   % iterative correction steps
     R_BC2 = @(u,n) S.R_BC2(u,n,0); % dirichlet BC
     RU = ss_residual(U,grid.dx,S.nu,grid.N);
     [u,dudt] = S.LS_T.eval(stencil,time,2);
-    [ua,dudta] = S.LS_T.eval(stencil,time,2);
+%     [ua,dudta] = S.LS_T.eval(stencil,time,2);
     TE = ss_residual_cont(S,S.LS_S,u);
     TE = TE + dudt;
     
-    TEa = ss_residual_cont(S,S.LS_S,ua);
-    TEa = TEa + dudta;
+%     TEa = ss_residual_cont(S,S.LS_S,ua);
+%     TEa = TEa + dudta;
     
     RHS = @(e) S.ETE_RHS(U,e,RU,TE);
     LHS = @(e) S.ETE_LHS(U,e);
@@ -342,11 +371,12 @@ for j = 1:S.Niters   % iterative correction steps
 %     Esoln.U = e_new;
     UE = U - e_new; % corrected solution
     stencil.U(:,i,2) = UE; % update stencil with corrected solution
-    OUT = output_ete_iter_stuff(OUT,S,resnorm,UE,count,j);
+%     OUT = output_ete_iter_stuff(OUT,S,soln,resnorm,UE,count,j);
+    OUT = output_ete_iter_stuff(OUT,S,soln.U,soln.E,resnorm,UE,count,j);
 end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [Esoln,stencil,OUT,S] = step_ete(grid,Esoln,stencil,OUT,S,count)
+function [Esoln,stencil,OUT,S] = step_ete(grid,soln,Esoln,stencil,OUT,S,count)
     time = stencil.t(stencil.queue_length);
     U = stencil.U(:,stencil.queue_length,1);
     L_BC1 = S.L_BC1;
@@ -364,8 +394,9 @@ function [Esoln,stencil,OUT,S] = step_ete(grid,Esoln,stencil,OUT,S,count)
     [e_new,resnorm,S,S.ETEintegrator] = S.ETEintegrator.step(...
               e_old, S, RHS, LHS, L_BC1, L_BC2, R_BC1, R_BC2 );
     Esoln.U = e_new;
-    OUT = output_ete_stuff(OUT,S,Esoln.U,resnorm,count);
-    stencil.U(:,stencil.queue_length,2) = U - e_new; % update next stencil with corrected solution
+    OUT = output_ete_stuff(OUT,S,Esoln.U,soln.E,resnorm,count);
+    % update next stencil with corrected solution
+    stencil.U(:,stencil.queue_length,2) = U - e_new;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [soln,stencil,OUT,S] = step_primal(grid,soln,stencil,OUT,S,count)
@@ -384,48 +415,136 @@ function [soln,stencil,OUT,S] = step_primal(grid,soln,stencil,OUT,S,count)
     OUT = output_primal_stuff(OUT,S,soln.U,Uex,soln.E,resnorm,count);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function OUT = output_ete_stuff(OUT,S,E,resnorm,count)
-    OUT.ERR.Rnorm{count,1}  = resnorm;
-    tmp = abs(E-OUT.PRI.E{count});
-    OUT.ERR.EnormX(count,1,1) = sum(tmp)/S.N;          % L1
-    OUT.ERR.EnormX(count,1,2) = sqrt(sum(tmp.^2)/S.N); % L2
-    OUT.ERR.EnormX(count,1,3) = max(tmp);              % L3
-    if (S.E_out_interval~=0)&&(mod(count-1,S.E_out_interval) == 0)
-        OUT.ERR.E{count,1}  = E;
-        OUT.ERR.EE{count,1} = E-OUT.PRI.E{count};
+function OUT = output_ete_stuff(OUT,S,E,EP,resnorm,count)
+    tmp = abs(E-EP);
+    % Running totals
+    OUT.ERR.Enorm(1,1) =     OUT.ERR.Enorm(1,1) + sum(tmp);   % L_1
+    OUT.ERR.Enorm(1,2) =     OUT.ERR.Enorm(1,2) + sum(tmp.^2);% L_2
+    OUT.ERR.Enorm(1,3) = max(OUT.ERR.Enorm(1,3),max(tmp));    % L_inf
+    % Spatial norms
+    OUT.ERR.EnormX(count,1,1) = sum(tmp)/S.N;                 % L_1
+    OUT.ERR.EnormX(count,1,2) = sqrt(sum(tmp.^2)/S.N);        % L_2
+    OUT.ERR.EnormX(count,1,3) = max(tmp);                     % L_inf
+    % Vector outputs
+    ERR_OUT = (S.E_out_interval~=0)&&(mod(count-1,S.E_out_interval) == 0);
+    RES_OUT = (S.R_out_interval~=0)&&(mod(count-1,S.R_out_interval) == 0);
+    ENDS    = count == S.max_steps || count == 1;
+    if ERR_OUT || ENDS
+        OUT.ERR.E{count,1}  = E; % estimated error
+        OUT.ERR.EE{count,1} = E-EP; % error in error estimate
+    end
+    if RES_OUT || ENDS
+        OUT.ERR.Rnorm{count,1}  = resnorm;
     end
 end
+% function OUT = output_ete_stuff(OUT,S,E,resnorm,count)
+%     OUT.ERR.Rnorm{count,1}  = resnorm;
+%     tmp = abs(E-OUT.PRI.E{count});
+%     OUT.ERR.EnormX(count,1,1) = sum(tmp)/S.N;          % L1
+%     OUT.ERR.EnormX(count,1,2) = sqrt(sum(tmp.^2)/S.N); % L2
+%     OUT.ERR.EnormX(count,1,3) = max(tmp);              % L3
+%     if (S.E_out_interval~=0)&&(mod(count-1,S.E_out_interval) == 0)
+%         OUT.ERR.E{count,1}  = E;
+%         OUT.ERR.EE{count,1} = E-OUT.PRI.E{count};
+%     end
+% end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function OUT = output_ete_iter_stuff(OUT,S,resnorm,UE,count,iter)
-    OUT.ERR.Rnorm{count,iter+1}  = resnorm;
-    E2 = OUT.PRI.U{count}- UE;
-    tmp = abs(E2-OUT.PRI.E{count});
-    OUT.ERR.EnormX(count,iter+1,1) = sum(tmp)/S.N;          % L1
-    OUT.ERR.EnormX(count,iter+1,2) = sqrt(sum(tmp.^2)/S.N); % L2
-    OUT.ERR.EnormX(count,iter+1,3) = max(tmp);              % L3
+function OUT = output_ete_iter_stuff(OUT,S,UP,EP,resnorm,UE,count,iter)
+    E2 = UP - UE;
+    tmp = abs(E2-EP);
+    % Running totals
+    OUT.ERR.Enorm(iter+1,1) =     OUT.ERR.Enorm(1,1) + sum(tmp);   % L_1
+    OUT.ERR.Enorm(iter+1,2) =     OUT.ERR.Enorm(1,2) + sum(tmp.^2);% L_2
+    OUT.ERR.Enorm(iter+1,3) = max(OUT.ERR.Enorm(1,3),max(tmp));    % L_inf
+    % Spatial norms
+    OUT.ERR.EnormX(count,iter+1,1) = sum(tmp)/S.N;                 % L_1
+    OUT.ERR.EnormX(count,iter+1,2) = sqrt(sum(tmp.^2)/S.N);        % L_2
+    OUT.ERR.EnormX(count,iter+1,3) = max(tmp);                     % L_inf
+    % Vector outputs
+    ERR_OUT = (S.E_out_interval~=0)&&(mod(count-1,S.E_out_interval) == 0);
+    RES_OUT = (S.R_out_interval~=0)&&(mod(count-1,S.R_out_interval) == 0);
+    ENDS    = count == S.max_steps || count == 1;
     if any(OUT.iters==iter)
-        if (S.E_out_interval~=0)&&(mod(count-1,S.E_out_interval) == 0)
-            OUT.ERR.E{count,iter+1}  = E2;
-            OUT.ERR.EE{count,iter+1} = E2-OUT.PRI.E{count};
+        if ERR_OUT || ENDS
+            OUT.ERR.E{count,iter+1}  = E2; % estimated error
+            OUT.ERR.EE{count,iter+1} = E2-EP; % error in error estimate
+        end
+        if RES_OUT || ENDS
+            OUT.ERR.Rnorm{count,iter+1}  = resnorm;
         end
     end
 end
+% function OUT = output_ete_iter_stuff(OUT,S,resnorm,UE,count,iter)
+%     OUT.ERR.Rnorm{count,iter+1}  = resnorm;
+%     E2 = OUT.PRI.U{count}- UE;
+%     tmp = abs(E2-OUT.PRI.E{count});
+%     OUT.ERR.EnormX(count,iter+1,1) = sum(tmp)/S.N;          % L1
+%     OUT.ERR.EnormX(count,iter+1,2) = sqrt(sum(tmp.^2)/S.N); % L2
+%     OUT.ERR.EnormX(count,iter+1,3) = max(tmp);              % L3
+%     if any(OUT.iters==iter)
+%         if (S.E_out_interval~=0)&&(mod(count-1,S.E_out_interval) == 0)
+%             OUT.ERR.E{count,iter+1}  = E2;
+%             OUT.ERR.EE{count,iter+1} = E2-OUT.PRI.E{count};
+%         end
+%     end
+% end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function OUT = output_primal_stuff(OUT,S,U,Uex,E,resnorm,count)
     OUT.PRI.Rnorm{count}  = resnorm;
-    OUT.PRI.EnormX(count,1) = sum(abs(E))/S.N;     % L1
-    OUT.PRI.EnormX(count,2) = sqrt(sum(E.^2)/S.N); % L2
-    OUT.PRI.EnormX(count,3) = max(abs(E));         % L3
-    OUT.PRI.U{count} = U;
-    OUT.PRI.E{count} = E;
-    if mod(count-1,S.Uex_out_interval) == 0
+    % Running totals
+    OUT.PRI.Enorm(1) = OUT.PRI.Enorm(1) + sum(abs(E));    % L_1
+    OUT.PRI.Enorm(2) = OUT.PRI.Enorm(2) + sum(E.^2);      % L_2
+    OUT.PRI.Enorm(3) = max(OUT.PRI.Enorm(3),max(abs(E))); % L_inf
+    % Spatial norms
+    OUT.PRI.EnormX(count,1) = sum(abs(E))/S.N;            % L_1
+    OUT.PRI.EnormX(count,2) = sqrt(sum(E.^2)/S.N);        % L_2
+    OUT.PRI.EnormX(count,3) = max(abs(E));                % L_inf
+    % Vector outputs
+    SOLN_OUT  = mod(count-1,S.U_out_interval) == 0;
+    EXACT_OUT = mod(count-1,S.Uex_out_interval) == 0;
+    ERR_OUT   = mod(count-1,S.E_out_interval) == 0;
+    ENDS      = count == S.max_steps || count == 1;
+    if SOLN_OUT || ENDS
+        OUT.PRI.U{count} = U;
+    end
+    if EXACT_OUT || ENDS
         OUT.PRI.Uex{count} = Uex;
     end
+    if ERR_OUT || ENDS
+        OUT.PRI.E{count} = E;
+    end
 end
+% function OUT = output_primal_stuff(OUT,S,U,Uex,E,resnorm,count)
+%     OUT.PRI.Rnorm{count}  = resnorm;
+%     OUT.PRI.EnormX(count,1) = sum(abs(E))/S.N;     % L1
+%     OUT.PRI.EnormX(count,2) = sqrt(sum(E.^2)/S.N); % L2
+%     OUT.PRI.EnormX(count,3) = max(abs(E));         % L3
+%     OUT.PRI.U{count} = U;
+%     OUT.PRI.E{count} = E;
+%     if mod(count-1,S.Uex_out_interval) == 0
+%         OUT.PRI.Uex{count} = Uex;
+%     end
+% end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function OUT = primal_cleanup(OUT)
+function OUT = primal_cleanup(OUT,S)
 OUT.PRI.U   = OUT.PRI.U(~cellfun('isempty',OUT.PRI.U));
 OUT.PRI.Uex = OUT.PRI.Uex(~cellfun('isempty',OUT.PRI.Uex));
-OUT.PRI.R   = OUT.PRI.R(~cellfun('isempty',OUT.PRI.R));
 OUT.PRI.E   = OUT.PRI.E(~cellfun('isempty',OUT.PRI.E));
+
+OUT.ERR.E  = OUT.ERR.E( ~cellfun('isempty',OUT.ERR.E(:,1)),:);
+OUT.ERR.EE = OUT.ERR.EE(~cellfun('isempty',OUT.ERR.EE(:,1)),:);
+OUT.ERR.Rnorm = OUT.ERR.Rnorm(~cellfun('isempty',OUT.ERR.Rnorm(:,1)),:);
+
+Nt = S.max_steps - 1; % number of time steps (excluding 1st time step)
+Nx = S.N;             % number of spatial nodes
+OUT.PRI.Enorm(1) = OUT.PRI.Enorm(1)/( Nt*Nx );
+OUT.PRI.Enorm(2) = sqrt( OUT.PRI.Enorm(2)/( Nt*Nx ) );
+OUT.ERR.Enorm(:,1) = OUT.ERR.Enorm(:,1)/( Nt*Nx );
+OUT.ERR.Enorm(:,2) = sqrt( OUT.ERR.Enorm(:,2)/( Nt*Nx ) );
 end
+% function OUT = primal_cleanup(OUT)
+% OUT.PRI.U   = OUT.PRI.U(~cellfun('isempty',OUT.PRI.U));
+% OUT.PRI.Uex = OUT.PRI.Uex(~cellfun('isempty',OUT.PRI.Uex));
+% OUT.PRI.R   = OUT.PRI.R(~cellfun('isempty',OUT.PRI.R));
+% OUT.PRI.E   = OUT.PRI.E(~cellfun('isempty',OUT.PRI.E));
+% end
