@@ -9,11 +9,21 @@ IN.N_IC    = 10;
 % dts = 0.025./(2.^(0:length(Ns)-1));
 % IN.ex_soln = burgers_exact_soln('move_shock',64,[-4,4]);
 
-IN.t0      = 0.1;
-IN.tf      = 1.1;
-Ns  = 2.^(7:8)+1;
-dts = 0.025./(2.^(0:length(Ns)-1));
+% IN.t0      = 0.1;
+% IN.tf      = 1.1;
+% Ns  = 2.^(7:8)+1;
+% dts = 0.025./(2.^(0:length(Ns)-1));
+% IN.ex_soln = burgers_exact_soln('#1',64,[-4,4]);
+
+
+IN.t0      = 0.2;
+IN.tf      = 1.2;
+Ns  = 2.^(5:12)+1;
+dts = 0.05./(2.^(0:length(Ns)-1));
 IN.ex_soln = burgers_exact_soln('#1',64,[-4,4]);
+
+
+
 % IN.t0      = 0.1;
 % IN.tf      = 0.6;
 % Ns  = 2.^(7:14)+1;
@@ -49,10 +59,10 @@ for i = 1:40
     out_interval = max(out_interval,gcd(i,intervals(1)));
 end
 intervals = intervals/out_interval;
-IN.U_out = 0;
-IN.UE_out = 0;
-IN.R_out = 0;
-IN.E_out = 0;
+IN.U_out = 1;
+IN.UE_out = 1;
+IN.R_out = 1;
+IN.E_out = 1;
 for i = 1:M
     IN.N = Ns(i);
     IN.dt = dts(i);
@@ -72,6 +82,13 @@ for i = 1:M
     OUT.Error_Norms_E(i).E = OUTPUT.ERR.EnormX;
     OUT.Final_Enorm_E(i,:,:) = OUTPUT.ERR.Enorm;
 end
+fname = [...
+    'C:\Users\Will\Documents\MATLAB\VT_Research',...
+    '\new\',...
+    '\results\02_11\',...
+    'expansion_fan_GS10_full'];
+save(fname,'OUT');
+save(fname, 'OUT', '-v7.3')
 % fname = [...
 %     'C:\Users\Will\Documents\MATLAB\VT_Research',...
 %     '\new\',...
