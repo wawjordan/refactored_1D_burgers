@@ -1,13 +1,13 @@
 %% ETE w/ iterative correction solver testing
 clc; clear; close all;
 
-order = 6;
+order = 4;
 
-N = 129;
-t0 = -2;
-tf = 4;
-dt = 0.4/8;
-ex_soln = burgers_exact_soln('unsteady_shock',64,[-4,4]);
+% N = 257;
+% t0 = -2;
+% tf = 4;
+% dt = 0.4/8/2;
+% ex_soln = burgers_exact_soln('unsteady_shock',64,[-4,4]);
 
 % N = 129;
 % t0 = 0.05;
@@ -19,17 +19,17 @@ ex_soln = burgers_exact_soln('unsteady_shock',64,[-4,4]);
 % t0 = 0.1;
 % tf = 20.1;
 % dt = 0.2;
-% N  = 257;
+% N  = 513;
 % t0 = 0.1;
-% tf = 1.1;
-% dt = 0.025/2;
+% tf = 5.1;
+% dt = 0.025/4;
 % ex_soln = burgers_exact_soln('#1',64,[-4,4]);
 
-% N = 129;
-% t0 = -5;
-% tf = 5;
-% dt = 0.1;
-% ex_soln = burgers_exact_soln('move_shock',256,[-10,10]);
+N = 257;
+t0 = -5;
+tf = 5;
+dt = 0.1/2;
+ex_soln = burgers_exact_soln('move_shock',64,[-10,10]);
 
 % N = 257;
 % t0 = 0.1;
@@ -37,7 +37,10 @@ ex_soln = burgers_exact_soln('unsteady_shock',64,[-4,4]);
 % dt = 0.025/2;
 % ex_soln = burgers_exact_soln('pulse_plus',64,[-2,2]);
 
+rng('default')
 x = linspace(ex_soln.xmin,ex_soln.xmax,N);
+x(2:end-1) = x(2:end-1)+0*0.001*(0.5-rand(1,N-2));
+% x = linspace(ex_soln.xmin,ex_soln.xmax,N);
 grid = grid1D(x);
 soln = scalar_soln1D(grid);  % primal solution
 Esoln = scalar_soln1D(grid); % ETE solution
@@ -55,7 +58,7 @@ S.U_out_interval = 0;
 S.Uex_out_interval = 0;
 S.R_out_interval = 0;
 S.E_out_interval = 1;
-S.Niters = 10;
+S.Niters = 0;
 S.out_iters = 1:S.Niters;
 % S.stencil_size = 7;
 S.stencil_size = order+1+mod(order,2);
